@@ -532,7 +532,7 @@ export const websites = [
     statusPageType: "custom",
   },
   {
-    name: "Grok",
+    name: "xAI (Grok)",
     url: "https://status.x.ai/",
     category: "AI/ML",
     statusPageType: "custom",
