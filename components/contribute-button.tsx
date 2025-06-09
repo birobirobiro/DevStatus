@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Github, PlusCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Github, PlusCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,38 +12,45 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useState } from "react"
-import { toast } from "@/components/ui/use-toast"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 export function ContributeButton() {
-  const [serviceName, setServiceName] = useState("")
-  const [serviceUrl, setServiceUrl] = useState("")
-  const [serviceCategory, setServiceCategory] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [serviceName, setServiceName] = useState("");
+  const [serviceUrl, setServiceUrl] = useState("");
+  const [serviceCategory, setServiceCategory] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Show success toast
     toast({
       title: "Service suggestion submitted",
-      description: "Thank you for your contribution! We'll review your suggestion soon.",
-    })
+      description:
+        "Thank you for your contribution! We'll review your suggestion soon.",
+    });
 
     // Reset form
-    setServiceName("")
-    setServiceUrl("")
-    setServiceCategory("")
-    setIsSubmitting(false)
-  }
+    setServiceName("");
+    setServiceUrl("");
+    setServiceCategory("");
+    setIsSubmitting(false);
+  };
 
   return (
     <Dialog>
@@ -58,7 +65,8 @@ export function ContributeButton() {
         <DialogHeader>
           <DialogTitle>Suggest a new service</DialogTitle>
           <DialogDescription>
-            Help us improve DevStatus by suggesting a developer service that should be monitored.
+            Help us improve DevStatus by suggesting a developer service that
+            should be monitored.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -94,7 +102,11 @@ export function ContributeButton() {
               <Label htmlFor="category" className="text-right">
                 Category
               </Label>
-              <Select value={serviceCategory} onValueChange={setServiceCategory} required>
+              <Select
+                value={serviceCategory}
+                onValueChange={setServiceCategory}
+                required
+              >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -107,28 +119,42 @@ export function ContributeButton() {
                   <SelectItem value="Cloud Provider">Cloud Provider</SelectItem>
                   <SelectItem value="CMS">CMS</SelectItem>
                   <SelectItem value="Communication">Communication</SelectItem>
-                  <SelectItem value="Communication API">Communication API</SelectItem>
+                  <SelectItem value="Communication API">
+                    Communication API
+                  </SelectItem>
                   <SelectItem value="Database">Database</SelectItem>
                   <SelectItem value="Design">Design</SelectItem>
-                  <SelectItem value="Developer Platform">Developer Platform</SelectItem>
-                  <SelectItem value="Development Tools">Development Tools</SelectItem>
+                  <SelectItem value="Developer Platform">
+                    Developer Platform
+                  </SelectItem>
+                  <SelectItem value="Development Tools">
+                    Development Tools
+                  </SelectItem>
                   <SelectItem value="E-commerce">E-commerce</SelectItem>
                   <SelectItem value="Email">Email</SelectItem>
-                  <SelectItem value="Game Development">Game Development</SelectItem>
+                  <SelectItem value="Game Development">
+                    Game Development
+                  </SelectItem>
                   <SelectItem value="Gaming">Gaming</SelectItem>
                   <SelectItem value="Media">Media</SelectItem>
                   <SelectItem value="Monitoring">Monitoring</SelectItem>
-                  <SelectItem value="Package Manager">Package Manager</SelectItem>
+                  <SelectItem value="Package Manager">
+                    Package Manager
+                  </SelectItem>
                   <SelectItem value="Payment">Payment</SelectItem>
                   <SelectItem value="Productivity">Productivity</SelectItem>
-                  <SelectItem value="Project Management">Project Management</SelectItem>
+                  <SelectItem value="Project Management">
+                    Project Management
+                  </SelectItem>
                   <SelectItem value="Real-time">Real-time</SelectItem>
                   <SelectItem value="Search">Search</SelectItem>
                   <SelectItem value="Security">Security</SelectItem>
                   <SelectItem value="Social">Social</SelectItem>
                   <SelectItem value="Streaming">Streaming</SelectItem>
                   <SelectItem value="Testing">Testing</SelectItem>
-                  <SelectItem value="Version Control">Version Control</SelectItem>
+                  <SelectItem value="Version Control">
+                    Version Control
+                  </SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -141,7 +167,10 @@ export function ContributeButton() {
               asChild
               className="gap-2"
               onClick={() =>
-                window.open("https://github.com/birobirobiro-projects/v0-enhance-dev-status-tool", "_blank")
+                window.open(
+                  "https://github.com/birobirobiro/DevStatus",
+                  "_blank"
+                )
               }
             >
               <div>
@@ -156,5 +185,5 @@ export function ContributeButton() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

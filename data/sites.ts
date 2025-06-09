@@ -101,49 +101,49 @@ export const websites = [
   {
     name: "Google Cloud - Compute Engine",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - BigQuery",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - Cloud Storage",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - Cloud SQL",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - Kubernetes Engine",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - Cloud Functions",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - Cloud Run",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
   {
     name: "Google Cloud - Vertex AI",
     url: "https://status.cloud.google.com/",
-    category: "Google Cloud",
+    category: "Google",
     statusPageType: "google",
   },
 
@@ -219,38 +219,38 @@ export const websites = [
   {
     name: "Microsoft Copilot",
     url: "https://status.cloud.microsoft/m365/",
-    category: "Microsoft 365",
+    category: "Microsoft",
     statusPageType: "microsoft",
   },
 
   {
     name: "Microsoft Office",
     url: "https://status.cloud.microsoft/m365/",
-    category: "Microsoft 365",
+    category: "Microsoft",
     statusPageType: "microsoft",
   },
   {
     name: "OneDrive",
     url: "https://status.cloud.microsoft/m365/",
-    category: "Microsoft 365",
+    category: "Microsoft",
     statusPageType: "microsoft",
   },
   {
     name: "Outlook",
     url: "https://status.cloud.microsoft/m365/",
-    category: "Microsoft 365",
+    category: "Microsoft",
     statusPageType: "microsoft",
   },
   {
     name: "Skype",
     url: "https://status.cloud.microsoft/m365/",
-    category: "Microsoft 365",
+    category: "Microsoft",
     statusPageType: "microsoft",
   },
   {
     name: "Teams",
     url: "https://status.cloud.microsoft/m365/",
-    category: "Microsoft 365",
+    category: "Microsoft",
     statusPageType: "microsoft",
   },
 
@@ -373,11 +373,22 @@ export const websites = [
     category: "Development Tools",
     statusPageType: "custom",
   },
+  {
+    name: "Together AI",
+    url: "https://status.together.ai/",
+    category: "Development Tools",
+    statusPageType: "custom",
+  },
 
   // Design & Collaboration
   {
     name: "Figma",
     url: `https://status.figma.com/api/v2/status.json`,
+    category: "Design",
+  },
+  {
+    name: "Framer",
+    url: `https://status.framer.com/${base_url_atlassian}`,
     category: "Design",
   },
   {
@@ -534,17 +545,6 @@ export const websites = [
   {
     name: "xAI (Grok)",
     url: "https://status.x.ai/",
-    category: "AI/ML",
-    statusPageType: "custom",
-  },
-  {
-    name: "LlamaIndex",
-    url: `https://llamaindex.statuspage.io/api/v2/status.json`,
-    category: "AI/ML",
-  },
-  {
-    name: "Together AI",
-    url: `https://status.together.ai/`,
     category: "AI/ML",
     statusPageType: "custom",
   },
