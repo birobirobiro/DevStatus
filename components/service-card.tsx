@@ -39,9 +39,12 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
     setIsFetchingLogo(true)
     setLogoUrl(null)
 
+    // Extrair o nome do serviço sem o prefixo da empresa
     const serviceName = website.page?.name || website.name
-    if (serviceName) {
-      LogoFetcher.fetchLogo(serviceName)
+    const cleanServiceName = getCleanServiceName(serviceName)
+
+    if (cleanServiceName) {
+      LogoFetcher.fetchLogo(cleanServiceName)
         .then((result) => {
           if (result) {
             setLogoUrl(result.url)
@@ -55,6 +58,24 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
       setIsFetchingLogo(false)
     }
   }, [website.name, website.page?.name])
+
+  // Função para remover prefixos de empresa dos nomes de serviço
+  const getCleanServiceName = (name: string): string => {
+    // Remover prefixos comuns
+    if (name.startsWith("Google Workspace - ")) {
+      return name.replace("Google Workspace - ", "")
+    }
+    if (name.startsWith("Google Cloud - ")) {
+      return name.replace("Google Cloud - ", "")
+    }
+    if (name.startsWith("Microsoft 365 - ")) {
+      return name.replace("Microsoft 365 - ", "")
+    }
+    if (name.startsWith("Meta - ")) {
+      return name.replace("Meta - ", "")
+    }
+    return name
+  }
 
   const getStatusInfo = () => {
     const desc = website.status.description?.toLowerCase()
@@ -199,7 +220,8 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
   }
 
   const statusInfo = getStatusInfo()
-  const ServiceIcon = getServiceIcon(website.page?.name || website.name)
+  const displayName = getCleanServiceName(website.page?.name || website.name)
+  const ServiceIcon = getServiceIcon(displayName)
   const isHighlighted = isMatchingCurrentFilter()
 
   // Verificar se é um serviço que não implementa status check
@@ -283,7 +305,7 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
                 {logoUrl ? (
                   <img
                     src={logoUrl || "/placeholder.svg"}
-                    alt={`${website.page?.name || website.name} logo`}
+                    alt={`${displayName} logo`}
                     className="w-8 h-8 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
                     onError={() => setLogoUrl(null)}
                   />
@@ -296,11 +318,14 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <h3 className="font-semibold text-zinc-100 truncate text-lg">{website.page?.name || website.name}</h3>
+              <div className="flex flex-col w-full mb-2">
+                <h3 className="font-semibold text-zinc-100 truncate text-lg">{displayName}</h3>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <Badge variant="secondary" className="text-xs bg-zinc-800 text-zinc-300 border-zinc-700">
+                    {website.category}
+                  </Badge>
 
-                {/* Badge de tipo de monitoramento - Corrigido para não quebrar com títulos grandes */}
-                <div className="flex-shrink-0">
+                  {/* Badge de tipo de monitoramento - Corrigido para não sobrepor o título */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Badge
@@ -317,9 +342,6 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
                   </Tooltip>
                 </div>
               </div>
-              <Badge variant="secondary" className="text-xs mt-1 bg-zinc-800 text-zinc-300 border-zinc-700">
-                {website.category}
-              </Badge>
             </div>
           </div>
         </CardHeader>
@@ -348,7 +370,7 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
                 <div className="bg-zinc-800/30 rounded-lg p-4 border border-zinc-800">
                   <h4 className="text-sm font-medium text-zinc-300 mb-2">About this service</h4>
                   <p className="text-xs text-zinc-400 mb-2">
-                    {website.name} provides a dedicated status page that shows real-time information about their service
+                    {displayName} provides a dedicated status page that shows real-time information about their service
                     health.
                   </p>
                   <div className="flex items-center gap-2 text-xs text-zinc-500">

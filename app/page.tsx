@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ServiceCard } from "@/components/service-card"
 import { StatsOverview } from "@/components/stats-overview"
 import { websites } from "@/data/sites"
@@ -46,6 +47,7 @@ export default function HomePage() {
           website.statusPageType === "incidentio" ||
           website.statusPageType === "statuspal" ||
           website.statusPageType === "instatus" ||
+          website.statusPageType === "microsoft" ||
           (!website.url.includes("api/v2/summary.json") && !website.url.includes("api/v2/status.json"))
 
         if (isExternalOnlyService) {
@@ -364,7 +366,7 @@ export default function HomePage() {
           {/* Search and Filters */}
           <Card className="mb-8 bg-zinc-900/50 border-zinc-800">
             <CardContent className="p-8">
-              <div className="relative">
+              <div className="relative mb-6">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-400 w-5 h-5" />
                 <Input
                   type="search"
@@ -374,131 +376,152 @@ export default function HomePage() {
                   className="pl-12 h-14 text-lg bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600"
                 />
               </div>
+
+              {/* Filters Accordion */}
+              <Accordion type="single" collapsible defaultValue="filters" className="w-full">
+                <AccordionItem value="filters" className="border-zinc-700">
+                  <AccordionTrigger className="text-zinc-300 hover:text-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4" />
+                      <span>Filters & Categories</span>
+                      {(statusFilter !== "all" || monitoringFilter || selectedCategory) && (
+                        <Badge variant="secondary" className="ml-2 bg-blue-500/20 text-blue-300 border-blue-500/30">
+                          Active
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-6">
+                    {/* Active Filter Display */}
+                    {(statusFilter !== "all" || monitoringFilter) && (
+                      <div className="mb-6">
+                        <div className="flex flex-wrap items-center gap-3 text-sm">
+                          {statusFilter !== "all" && (
+                            <>
+                              <Filter className="w-4 h-4 text-blue-400" />
+                              <span className="text-zinc-300">Status:</span>
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-500/20"
+                                onClick={() => setStatusFilter("all")}
+                              >
+                                {getFilterDisplayText()} ✕
+                              </Badge>
+                            </>
+                          )}
+
+                          {monitoringFilter && (
+                            <>
+                              {statusFilter !== "all" && <span className="mx-2">•</span>}
+                              <Rss className="w-4 h-4 text-indigo-400" />
+                              <span className="text-zinc-300">Monitoring:</span>
+                              <Badge
+                                variant="outline"
+                                className="bg-indigo-500/10 border-indigo-500/30 text-indigo-400 cursor-pointer hover:bg-indigo-500/20"
+                                onClick={() => setMonitoringFilter(null)}
+                              >
+                                {getMonitoringFilterDisplayText()} ✕
+                              </Badge>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Category Filter */}
+                    <div>
+                      <h3 className="text-sm font-medium text-zinc-400 mb-3">Categories</h3>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge
+                          variant={selectedCategory === null ? "default" : "outline"}
+                          className={`cursor-pointer px-4 py-2 ${
+                            selectedCategory === null
+                              ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                              : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                          }`}
+                          onClick={() => setSelectedCategory(null)}
+                        >
+                          All Categories
+                        </Badge>
+                        {categories.map((category) => (
+                          <Badge
+                            key={category}
+                            variant={selectedCategory === category ? "default" : "outline"}
+                            className={`cursor-pointer px-4 py-2 ${
+                              selectedCategory === category
+                                ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                                : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                            }`}
+                            onClick={() => setSelectedCategory(category)}
+                          >
+                            {category}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Monitoring Type Filter */}
+                    <div>
+                      <h3 className="text-sm font-medium text-zinc-400 mb-3">Monitoring Type</h3>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge
+                          variant={monitoringFilter === "external" ? "default" : "outline"}
+                          className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                            monitoringFilter === "external"
+                              ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                              : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                          }`}
+                          onClick={() => handleMonitoringFilter("external")}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>External Page ({monitoringStats.external})</span>
+                        </Badge>
+
+                        <Badge
+                          variant={monitoringFilter === "status-api" ? "default" : "outline"}
+                          className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                            monitoringFilter === "status-api"
+                              ? "bg-blue-500/30 text-blue-100 hover:bg-blue-500/40"
+                              : "border-blue-500/20 text-blue-300 hover:bg-blue-500/10"
+                          }`}
+                          onClick={() => handleMonitoringFilter("status-api")}
+                        >
+                          <Rss className="w-3 h-3" />
+                          <span>Status API ({monitoringStats.statusApi})</span>
+                        </Badge>
+
+                        <Badge
+                          variant={monitoringFilter === "summary-api" ? "default" : "outline"}
+                          className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                            monitoringFilter === "summary-api"
+                              ? "bg-indigo-500/30 text-indigo-100 hover:bg-indigo-500/40"
+                              : "border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/10"
+                          }`}
+                          onClick={() => handleMonitoringFilter("summary-api")}
+                        >
+                          <Rss className="w-3 h-3" />
+                          <span>Summary API ({monitoringStats.summaryApi})</span>
+                        </Badge>
+
+                        <Badge
+                          variant={monitoringFilter === "custom" ? "default" : "outline"}
+                          className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                            monitoringFilter === "custom"
+                              ? "bg-amber-500/30 text-amber-100 hover:bg-amber-500/40"
+                              : "border-amber-500/20 text-amber-300 hover:bg-amber-500/10"
+                          }`}
+                          onClick={() => handleMonitoringFilter("custom")}
+                        >
+                          <HelpCircle className="w-3 h-3" />
+                          <span>Custom ({monitoringStats.custom})</span>
+                        </Badge>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </CardContent>
           </Card>
-
-          {/* Active Filter Display */}
-          <div className="mb-6">
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              {statusFilter !== "all" && (
-                <>
-                  <Filter className="w-4 h-4 text-blue-400" />
-                  <span className="text-zinc-300">Status:</span>
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-500/20"
-                    onClick={() => setStatusFilter("all")}
-                  >
-                    {getFilterDisplayText()} ✕
-                  </Badge>
-                </>
-              )}
-
-              {monitoringFilter && (
-                <>
-                  {statusFilter !== "all" && <span className="mx-2">•</span>}
-                  <Rss className="w-4 h-4 text-indigo-400" />
-                  <span className="text-zinc-300">Monitoring:</span>
-                  <Badge
-                    variant="outline"
-                    className="bg-indigo-500/10 border-indigo-500/30 text-indigo-400 cursor-pointer hover:bg-indigo-500/20"
-                    onClick={() => setMonitoringFilter(null)}
-                  >
-                    {getMonitoringFilterDisplayText()} ✕
-                  </Badge>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2">
-              <Badge
-                variant={selectedCategory === null ? "default" : "outline"}
-                className={`cursor-pointer px-4 py-2 ${
-                  selectedCategory === null
-                    ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
-                    : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                }`}
-                onClick={() => setSelectedCategory(null)}
-              >
-                All Categories
-              </Badge>
-              {categories.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className={`cursor-pointer px-4 py-2 ${
-                    selectedCategory === category
-                      ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
-                      : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Monitoring Type Filter */}
-          <div className="mb-8">
-            <h3 className="text-sm font-medium text-zinc-400 mb-3">Monitoring Type</h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge
-                variant={monitoringFilter === "external" ? "default" : "outline"}
-                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
-                  monitoringFilter === "external"
-                    ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
-                    : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                }`}
-                onClick={() => handleMonitoringFilter("external")}
-              >
-                <ExternalLink className="w-3 h-3" />
-                <span>External Page ({monitoringStats.external})</span>
-              </Badge>
-
-              <Badge
-                variant={monitoringFilter === "status-api" ? "default" : "outline"}
-                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
-                  monitoringFilter === "status-api"
-                    ? "bg-blue-500/30 text-blue-100 hover:bg-blue-500/40"
-                    : "border-blue-500/20 text-blue-300 hover:bg-blue-500/10"
-                }`}
-                onClick={() => handleMonitoringFilter("status-api")}
-              >
-                <Rss className="w-3 h-3" />
-                <span>Status API ({monitoringStats.statusApi})</span>
-              </Badge>
-
-              <Badge
-                variant={monitoringFilter === "summary-api" ? "default" : "outline"}
-                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
-                  monitoringFilter === "summary-api"
-                    ? "bg-indigo-500/30 text-indigo-100 hover:bg-indigo-500/40"
-                    : "border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/10"
-                }`}
-                onClick={() => handleMonitoringFilter("summary-api")}
-              >
-                <Rss className="w-3 h-3" />
-                <span>Summary API ({monitoringStats.summaryApi})</span>
-              </Badge>
-
-              <Badge
-                variant={monitoringFilter === "custom" ? "default" : "outline"}
-                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
-                  monitoringFilter === "custom"
-                    ? "bg-amber-500/30 text-amber-100 hover:bg-amber-500/40"
-                    : "border-amber-500/20 text-amber-300 hover:bg-amber-500/10"
-                }`}
-                onClick={() => handleMonitoringFilter("custom")}
-              >
-                <HelpCircle className="w-3 h-3" />
-                <span>Custom ({monitoringStats.custom})</span>
-              </Badge>
-            </div>
-          </div>
 
           {/* Services Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

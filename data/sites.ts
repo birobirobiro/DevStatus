@@ -209,6 +209,74 @@ export const websites = [
     statusPageType: "google",
   },
 
+  // Microsoft 365
+  {
+    name: "Microsoft 365",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Productivity",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Microsoft Copilot",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Microsoft Lists",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Microsoft To-Do",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Microsoft Whiteboard",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Office for the web",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - OneDrive",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Outlook.com",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Phone Link",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Skype",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+  {
+    name: "Microsoft 365 - Teams",
+    url: "https://status.cloud.microsoft/m365/",
+    category: "Microsoft 365",
+    statusPageType: "microsoft",
+  },
+
   // Firebase
   {
     name: "Firebase",
@@ -322,6 +390,12 @@ export const websites = [
     category: "Development Tools",
     statusPageType: "custom",
   },
+  {
+    name: "Lovable",
+    url: "https://status.lovable.dev/",
+    category: "Development Tools",
+    statusPageType: "custom",
+  },
 
   // Design & Collaboration
   {
@@ -378,12 +452,6 @@ export const websites = [
     category: "Communication",
   },
   {
-    name: "Microsoft Teams",
-    url: "https://portal.office.com/servicestatus",
-    category: "Communication",
-    statusPageType: "custom",
-  },
-  {
     name: "Telegram",
     url: "https://status.telegram.org/",
     category: "Communication",
@@ -435,7 +503,7 @@ export const websites = [
     category: "AI/ML",
   },
   {
-    name: "Anthropic",
+    name: "Claude (Anthropic)",
     url: `https://status.anthropic.com/${base_url_atlassian}`,
     category: "AI/ML",
   },
@@ -468,6 +536,34 @@ export const websites = [
     url: "https://status.cohere.ai/",
     category: "AI/ML",
     statusPageType: "custom",
+  },
+  {
+    name: "DeepSeek",
+    url: `https://status.deepseek.com/api/v2/status.json`,
+    category: "AI/ML",
+  },
+  {
+    name: "Perplexity",
+    url: "https://status.perplexity.com/",
+    category: "AI/ML",
+    statusPageType: "custom",
+  },
+  {
+    name: "ElevenLabs",
+    url: "https://status.elevenlabs.io/",
+    category: "AI/ML",
+    statusPageType: "custom",
+  },
+  {
+    name: "X.ai",
+    url: "https://status.x.ai/",
+    category: "AI/ML",
+    statusPageType: "custom",
+  },
+  {
+    name: "LlamaIndex",
+    url: `https://llamaindex.statuspage.io/api/v2/status.json`,
+    category: "AI/ML",
   },
 
   // Monitoring & Analytics
@@ -737,6 +833,14 @@ export const websites = [
     name: "InVision",
     url: "https://status.invisionapp.com/",
     category: "Design",
+    statusPageType: "custom",
+  },
+
+  // Government Services
+  {
+    name: "SEFAZ - Nota Fiscal Eletrônica",
+    url: "https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?AspxAutoDetectCookieSupport=1",
+    category: "Government",
     statusPageType: "custom",
   },
 ]
