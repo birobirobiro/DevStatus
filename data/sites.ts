@@ -542,6 +542,12 @@ export const websites = [
     url: `https://llamaindex.statuspage.io/api/v2/status.json`,
     category: "AI/ML",
   },
+  {
+    name: "Together AI",
+    url: `https://status.together.ai/`,
+    category: "AI/ML",
+    statusPageType: "custom",
+  },
 
   // Monitoring & Analytics
   {
