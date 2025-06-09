@@ -1,4 +1,4 @@
-export const base_url_atlassian = "api/v2/summary.json"
+export const base_url_atlassian = "api/v2/summary.json";
 
 // Lista de domínios que usam status pages próprias ou de terceiros
 // mas não fornecem API compatível com Atlassian
@@ -14,7 +14,7 @@ const externalStatusDomains = [
   "status.gitlab.com",
   "status.auth0.com",
   "status.clerk.com",
-]
+];
 
 export const websites = [
   // AI Code Editors
@@ -555,7 +555,7 @@ export const websites = [
     statusPageType: "custom",
   },
   {
-    name: "X.ai",
+    name: "Grok",
     url: "https://status.x.ai/",
     category: "AI/ML",
     statusPageType: "custom",
@@ -843,15 +843,15 @@ export const websites = [
     category: "Government",
     statusPageType: "custom",
   },
-]
+];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
 // que não foram explicitamente marcados
 websites.forEach((website) => {
   if (!website.statusPageType) {
-    const domain = new URL(website.url).hostname
+    const domain = new URL(website.url).hostname;
     if (externalStatusDomains.some((extDomain) => domain.includes(extDomain))) {
-      website.statusPageType = "custom"
+      website.statusPageType = "custom";
     }
   }
-})
+});
