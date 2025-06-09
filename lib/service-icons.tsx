@@ -34,6 +34,7 @@ import {
   TestTube,
   Radio,
   PieChart,
+  Facebook,
 } from "lucide-react"
 
 const serviceIconMap: Record<string, any> = {
@@ -212,7 +213,8 @@ const serviceIconMap: Record<string, any> = {
   Reddit: Users,
   LinkedIn: Users,
   "Linked In": Users,
-  Facebook: Users,
+  Facebook: Facebook,
+  Meta: Facebook,
   Twitter: Users,
   X: Users,
   Bluesky: Users,

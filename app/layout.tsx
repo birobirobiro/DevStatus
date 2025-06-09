@@ -1,7 +1,8 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -9,23 +10,71 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
+export const viewport: Viewport = {
+  themeColor: "#18181b",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+}
+
 export const metadata: Metadata = {
   title: "DevStatus - Real-time Developer Tools Monitoring",
   description:
-    "Monitor the status of your favorite developer tools and services in real-time. A comprehensive status dashboard for development infrastructure, APIs, and cloud services.",
-  keywords: ["status monitor", "developer tools", "uptime", "service status", "devops", "infrastructure monitoring"],
+    "Monitor the status of your favorite developer tools and services in real-time. Track outages and performance issues across GitHub, Vercel, AWS, and 100+ developer services.",
+  keywords: [
+    "status monitor",
+    "developer tools",
+    "uptime",
+    "service status",
+    "devops",
+    "infrastructure monitoring",
+    "github status",
+    "vercel status",
+    "aws status",
+    "cloud services",
+    "api status",
+    "developer dashboard",
+  ],
   authors: [{ name: "DevStatus Team" }],
+  creator: "DevStatus Team",
+  publisher: "DevStatus",
+  robots: "index, follow",
+  metadataBase: new URL("https://devstatus.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "DevStatus - Developer Tools Monitoring",
-    description: "Real-time status monitoring for developer tools and services",
+    description: "Real-time status monitoring for 100+ developer tools and services",
     type: "website",
+    url: "https://devstatus.vercel.app",
+    siteName: "DevStatus",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "DevStatus Dashboard Preview",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "DevStatus - Developer Tools Monitoring",
-    description: "Real-time status monitoring for developer tools and services",
+    description: "Real-time status monitoring for 100+ developer tools and services",
+    images: ["/og-image.png"],
+    creator: "@devstatus",
   },
-    generator: 'v0.dev'
+  manifest: "/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  generator: "v0.dev",
+  category: "Technology",
 }
 
 export default function RootLayout({
@@ -35,7 +84,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        <ThemeProvider defaultTheme="dark" storageKey="devstatus-theme">
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

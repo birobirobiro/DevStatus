@@ -10,6 +10,7 @@ interface StatsOverviewProps {
     operational: number
     issues: number
     unknown: number
+    external: number
   }
   loading: boolean
   onStatusFilter: (status: string) => void
@@ -78,15 +79,15 @@ export function StatsOverview({ stats, loading, onStatusFilter, currentFilter }:
       activeBgColor: "bg-red-500/20",
     },
     {
-      title: "Unknown Status",
+      title: "Fetch Errors",
       value: stats.unknown,
       icon: HelpCircle,
-      color: "text-zinc-400",
-      bgColor: "bg-zinc-500/10",
-      borderColor: "border-zinc-500/20",
+      color: "text-red-400",
+      bgColor: "bg-red-500/10",
+      borderColor: "border-red-500/20",
       filterType: "unknown",
-      activeColor: "text-zinc-300",
-      activeBgColor: "bg-zinc-500/20",
+      activeColor: "text-red-300",
+      activeBgColor: "bg-red-500/20",
     },
   ]
 

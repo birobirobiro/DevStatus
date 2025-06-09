@@ -53,3 +53,6 @@ export interface SVGLCategory {
   category: string
   total: number
 }
+
+// Status types
+export type StatusIndicator = "none" | "minor" | "major" | "critical" | "maintenance" | "unknown" | "error" | "external"

@@ -1,15 +1,20 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ThemeProvider } from "@/components/theme-provider"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ServiceCard } from "@/components/service-card"
 import { StatsOverview } from "@/components/stats-overview"
 import { websites } from "@/data/sites"
-import { Search, Zap, Filter } from "lucide-react"
+import { Search, Zap, Filter, Github, Share2 } from "lucide-react"
 import type { WebsiteData } from "@/types"
+import { ContributeButton } from "@/components/contribute-button"
+import { RefreshButton } from "@/components/refresh-button"
+import { Button } from "@/components/ui/button"
+import { Toaster } from "@/components/toaster"
+import Head from "next/head"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function HomePage() {
   const [websiteData, setWebsiteData] = useState<WebsiteData[]>([])
@@ -17,89 +22,93 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const { toast } = useToast()
 
   const categories = Array.from(new Set(websites.map((site) => site.category))).sort()
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        const dataPromises = websites.map(async (website) => {
-          // Check if this is a non-Atlassian service that should be marked as unknown
-          const isNonAtlassianService =
-            website.statusPageType === "google" ||
-            website.statusPageType === "azure" ||
-            website.statusPageType === "jenkins" ||
-            website.statusPageType === "adobe" ||
-            website.statusPageType === "sketch" ||
-            website.statusPageType === "apple" ||
-            website.statusPageType === "custom" ||
-            website.statusPageType === "betterstack" ||
-            website.statusPageType === "statusio" ||
-            website.statusPageType === "incidentio" ||
-            website.statusPageType === "statuspal" ||
-            website.statusPageType === "instatus" ||
-            (!website.url.includes("api/v2/summary.json") && !website.url.includes("api/v2/status.json"))
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const dataPromises = websites.map(async (website) => {
+        // Check if this is a service with external status page only
+        const isExternalOnlyService =
+          website.statusPageType === "google" ||
+          website.statusPageType === "azure" ||
+          website.statusPageType === "jenkins" ||
+          website.statusPageType === "adobe" ||
+          website.statusPageType === "sketch" ||
+          website.statusPageType === "apple" ||
+          website.statusPageType === "custom" ||
+          website.statusPageType === "betterstack" ||
+          website.statusPageType === "statusio" ||
+          website.statusPageType === "incidentio" ||
+          website.statusPageType === "statuspal" ||
+          website.statusPageType === "instatus" ||
+          (!website.url.includes("api/v2/summary.json") && !website.url.includes("api/v2/status.json"))
 
-          if (isNonAtlassianService) {
-            return {
-              page: {
-                id: website.name,
-                name: website.name,
-                url: website.url,
-                updated_at: new Date().toISOString(),
-              },
-              components: [],
-              status: {
-                description: "Status check not implemented",
-                indicator: "unknown",
-              },
+        if (isExternalOnlyService) {
+          return {
+            page: {
+              id: website.name,
               name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
-            } as WebsiteData
-          }
+              url: website.url, // Usar a URL direta para serviços externos
+              updated_at: new Date().toISOString(),
+            },
+            components: [],
+            status: {
+              description: "External status page",
+              indicator: "external",
+            },
+            name: website.name,
+            category: website.category,
+            statusPageType: website.statusPageType,
+            url: website.url,
+          } as WebsiteData
+        }
 
-          try {
-            const fetchedData = await getStatus(website.url)
-            return {
-              ...fetchedData,
+        try {
+          const fetchedData = await getStatus(website.url)
+          return {
+            ...fetchedData,
+            name: website.name,
+            category: website.category,
+            statusPageType: website.statusPageType,
+            url: website.url,
+          } as WebsiteData
+        } catch (error) {
+          return {
+            page: {
+              id: website.name,
               name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
               url: website.url,
-            } as WebsiteData
-          } catch (error) {
-            return {
-              page: {
-                id: website.name,
-                name: website.name,
-                url: website.url,
-                updated_at: new Date().toISOString(),
-              },
-              components: [],
-              status: {
-                description: "Error fetching status",
-                indicator: "error",
-              },
-              name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
-              url: website.url,
-            } as WebsiteData
-          }
-        })
+              updated_at: new Date().toISOString(),
+            },
+            components: [],
+            status: {
+              description: "Error fetching status",
+              indicator: "error",
+            },
+            name: website.name,
+            category: website.category,
+            statusPageType: website.statusPageType,
+            url: website.url,
+          } as WebsiteData
+        }
+      })
 
-        const resolvedData = await Promise.all(dataPromises)
-        const sortedData = resolvedData.sort((a, b) => a.page.name.localeCompare(b.page.name))
-        setWebsiteData(sortedData)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setLoading(false)
-      }
+      const resolvedData = await Promise.all(dataPromises)
+      const sortedData = resolvedData.sort((a, b) => a.page.name.localeCompare(b.page.name))
+      setWebsiteData(sortedData)
+      setLastUpdated(new Date())
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchData()
 
     // Set up auto-refresh every 5 minutes
@@ -120,6 +129,49 @@ export default function HomePage() {
     setStatusFilter(status)
   }
 
+  const handleShare = async () => {
+    try {
+      // Check if Web Share API is available and supported
+      if (navigator.share && typeof navigator.canShare === "function") {
+        const shareData = {
+          title: "DevStatus - Developer Tools Status",
+          text: "Check the current status of developer tools and services",
+          url: window.location.href,
+        }
+
+        // Check if the data can be shared
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData)
+          return
+        }
+      }
+
+      // Fallback to clipboard
+      await navigator.clipboard.writeText(window.location.href)
+      toast({
+        title: "Link copied!",
+        description: "The page URL has been copied to your clipboard.",
+      })
+    } catch (error) {
+      // Final fallback - try clipboard again or show manual copy
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        toast({
+          title: "Link copied!",
+          description: "The page URL has been copied to your clipboard.",
+        })
+      } catch (clipboardError) {
+        // Show the URL for manual copying
+        const url = window.location.href
+        toast({
+          title: "Share this page",
+          description: `Copy this URL: ${url}`,
+          duration: 10000,
+        })
+      }
+    }
+  }
+
   const filteredWebsites = websiteData
     .filter((data) => data.page.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .filter((data) => (selectedCategory ? data.category === selectedCategory : true))
@@ -132,16 +184,17 @@ export default function HomePage() {
         return (
           data.status.indicator !== "none" &&
           !data.status.description.toLowerCase().includes("operational") &&
-          data.status.indicator !== "unknown" &&
+          data.status.indicator !== "external" &&
           data.status.indicator !== "error"
         )
       }
       if (statusFilter === "unknown") {
-        return data.status.indicator === "unknown" || data.status.indicator === "error"
+        return data.status.indicator === "error" // Only real errors, not external services
       }
       return true
     })
 
+  // Count services by status type
   const stats = {
     total: websiteData.length,
     operational: websiteData.filter(
@@ -151,24 +204,49 @@ export default function HomePage() {
       (d) =>
         d.status.indicator !== "none" &&
         !d.status.description.toLowerCase().includes("operational") &&
-        d.status.indicator !== "unknown" &&
+        d.status.indicator !== "external" &&
         d.status.indicator !== "error",
     ).length,
-    unknown: websiteData.filter((d) => d.status.indicator === "unknown" || d.status.indicator === "error").length,
+    unknown: websiteData.filter((d) => d.status.indicator === "error").length, // Only real errors
+    external: websiteData.filter((d) => d.status.indicator === "external").length, // External services count
   }
 
   const getFilterDisplayText = () => {
     if (statusFilter === "all") return "All Services"
     if (statusFilter === "operational") return `Operational Services (${stats.operational})`
     if (statusFilter === "issues") return `Services with Issues (${stats.issues})`
-    if (statusFilter === "unknown") return `Unknown Status (${stats.unknown})`
+    if (statusFilter === "unknown") return `Fetch Errors (${stats.unknown})`
     return "All Services"
   }
 
   console.log("Current filter:", statusFilter, "Filtered websites count:", filteredWebsites.length)
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="devstatus-theme">
+    <>
+      <Head>
+        <link rel="canonical" href="https://devstatus.vercel.app" />
+        <meta name="robots" content="index, follow" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "DevStatus",
+              description: "Real-time status monitoring for developer tools and services",
+              url: "https://devstatus.vercel.app",
+              applicationCategory: "DeveloperApplication",
+              operatingSystem: "Web",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+            }),
+          }}
+        />
+      </Head>
+
       <div className="min-h-screen bg-zinc-950">
         <div className="container mx-auto px-6 py-12 max-w-7xl">
           {/* Header */}
@@ -186,8 +264,18 @@ export default function HomePage() {
               Real-time monitoring for developer tools and services. Stay informed about outages and maintenance.
             </p>
 
+            {/* Action Buttons */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <RefreshButton onRefresh={fetchData} />
+              <ContributeButton />
+              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
+                <Share2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+            </div>
+
             {/* Quick Stats */}
-            <div className="flex items-center justify-center gap-8 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                 <span className="text-zinc-300">{stats.operational} Operational</span>
@@ -198,9 +286,16 @@ export default function HomePage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-zinc-500 rounded-full" />
-                <span className="text-zinc-300">{stats.unknown} Unknown</span>
+                <span className="text-zinc-300">{stats.external} External</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full" />
+                <span className="text-zinc-300">{stats.unknown} Errors</span>
               </div>
             </div>
+
+            {/* Last Updated */}
+            <p className="text-xs text-zinc-500 mt-4">Last updated: {lastUpdated.toLocaleTimeString()}</p>
           </div>
 
           {/* Stats Overview */}
@@ -300,13 +395,35 @@ export default function HomePage() {
           )}
 
           {/* Footer */}
-          <footer className="mt-20 pt-8 border-t border-zinc-800 text-center">
-            <p className="text-zinc-400">
-              Built for developers • Data refreshes every 5 minutes • {websiteData.length} services monitored
-            </p>
+          <footer className="mt-20 pt-8 border-t border-zinc-800">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-center md:text-left">
+                <p className="text-zinc-400 mb-2">
+                  Built for developers • Data refreshes every 5 minutes • {websiteData.length} services monitored
+                </p>
+                <p className="text-xs text-zinc-500">
+                  Open source project • Help us improve by suggesting new services
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild className="text-zinc-400 hover:text-zinc-200">
+                  <a
+                    href="https://github.com/birobirobiro-projects/v0-enhance-dev-status-tool"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    <Github className="h-4 w-4" />
+                    <span>GitHub</span>
+                  </a>
+                </Button>
+                <ContributeButton />
+              </div>
+            </div>
           </footer>
         </div>
+        <Toaster />
       </div>
-    </ThemeProvider>
+    </>
   )
 }

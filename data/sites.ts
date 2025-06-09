@@ -1,5 +1,22 @@
 export const base_url_atlassian = "api/v2/summary.json"
 
+// Lista de domínios que usam status pages próprias ou de terceiros
+// mas não fornecem API compatível com Atlassian
+const externalStatusDomains = [
+  "fastlystatus.com",
+  "status.strapi.io",
+  "status.stripe.com",
+  "replicatestatus.com",
+  "status.okta.com",
+  "status.postmarkapp.com",
+  "status.jetbrains.com",
+  "status.heroku.com",
+  "status.gitlab.com",
+  "status.algolia.com",
+  "status.auth0.com",
+  "status.clerk.com",
+]
+
 export const websites = [
   // AI Code Editors
   {
@@ -39,6 +56,7 @@ export const websites = [
     name: "Heroku",
     url: `https://status.heroku.com/${base_url_atlassian}`,
     category: "Cloud Provider",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Digital Ocean",
@@ -131,6 +149,7 @@ export const websites = [
     name: "GitLab",
     url: `https://status.gitlab.com/${base_url_atlassian}`,
     category: "Version Control",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Bitbucket",
@@ -170,6 +189,7 @@ export const websites = [
     name: "JetBrains",
     url: `https://status.jetbrains.com/${base_url_atlassian}`,
     category: "Development Tools",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Replit",
@@ -193,7 +213,7 @@ export const websites = [
   // Design & Collaboration
   {
     name: "Figma",
-    url: `https://status.figma.com/${base_url_atlassian}`,
+    url: `https://status.figma.com/api/v2/status.json`,
     category: "Design",
   },
   {
@@ -278,6 +298,7 @@ export const websites = [
     name: "Replicate",
     url: `https://status.replicate.com/${base_url_atlassian}`,
     category: "AI/ML",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Hugging Face",
@@ -336,16 +357,19 @@ export const websites = [
     name: "Auth0",
     url: `https://status.auth0.com/${base_url_atlassian}`,
     category: "Authentication",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Clerk",
     url: `https://status.clerk.com/${base_url_atlassian}`,
     category: "Authentication",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Okta",
     url: `https://status.okta.com/${base_url_atlassian}`,
     category: "Authentication",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
 
   // Content & Media
@@ -368,6 +392,7 @@ export const websites = [
     name: "Strapi",
     url: `https://status.strapi.io/${base_url_atlassian}`,
     category: "CMS",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
 
   // Payment & E-commerce
@@ -375,6 +400,7 @@ export const websites = [
     name: "Stripe",
     url: `https://status.stripe.com/${base_url_atlassian}`,
     category: "Payment",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Shopify",
@@ -410,6 +436,7 @@ export const websites = [
     name: "Postmark",
     url: `https://status.postmarkapp.com/${base_url_atlassian}`,
     category: "Email",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
 
   // Search & Analytics
@@ -417,6 +444,7 @@ export const websites = [
     name: "Algolia",
     url: `https://status.algolia.com/${base_url_atlassian}`,
     category: "Search",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Elasticsearch",
@@ -434,6 +462,12 @@ export const websites = [
     name: "LinkedIn",
     url: `https://www.linkedin-status.com/${base_url_atlassian}`,
     category: "Social",
+  },
+  {
+    name: "Meta",
+    url: "https://metastatus.com/",
+    category: "Social",
+    statusPageType: "custom",
   },
   {
     name: "Bluesky",
@@ -489,6 +523,7 @@ export const websites = [
     name: "Fastly",
     url: `https://status.fastly.com/${base_url_atlassian}`,
     category: "CDN",
+    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "KeyCDN",
@@ -543,9 +578,8 @@ export const websites = [
   // More Design Tools
   {
     name: "Canva",
-    url: "https://status.canva.com/",
+    url: `https://www.canvastatus.com/api/v2/status.json`,
     category: "Design",
-    statusPageType: "custom",
   },
   {
     name: "InVision",
@@ -568,3 +602,14 @@ export const websites = [
     statusPageType: "custom",
   },
 ]
+
+// Adiciona statusPageType="custom" para todos os domínios na lista de externos
+// que não foram explicitamente marcados
+websites.forEach((website) => {
+  if (!website.statusPageType) {
+    const domain = new URL(website.url).hostname
+    if (externalStatusDomains.some((extDomain) => domain.includes(extDomain))) {
+      website.statusPageType = "custom"
+    }
+  }
+})
