@@ -296,24 +296,26 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h3 className="font-semibold text-zinc-100 truncate text-lg">{website.page?.name || website.name}</h3>
 
-                {/* Badge de tipo de monitoramento */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] py-0 px-1.5 h-5 ${monitoringType.color} flex items-center gap-1`}
-                    >
-                      {monitoringType.icon}
-                      <span className="hidden sm:inline">{monitoringType.label}</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p>{monitoringType.tooltip}</p>
-                  </TooltipContent>
-                </Tooltip>
+                {/* Badge de tipo de monitoramento - Corrigido para não quebrar com títulos grandes */}
+                <div className="flex-shrink-0">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] py-0 px-1.5 h-5 ${monitoringType.color} flex items-center gap-1`}
+                      >
+                        {monitoringType.icon}
+                        <span className="hidden sm:inline">{monitoringType.label}</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>{monitoringType.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
               <Badge variant="secondary" className="text-xs mt-1 bg-zinc-800 text-zinc-300 border-zinc-700">
                 {website.category}

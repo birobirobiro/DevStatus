@@ -12,7 +12,6 @@ const externalStatusDomains = [
   "status.jetbrains.com",
   "status.heroku.com",
   "status.gitlab.com",
-  "status.algolia.com",
   "status.auth0.com",
   "status.clerk.com",
 ]
@@ -69,12 +68,6 @@ export const websites = [
     category: "Cloud Provider",
   },
   {
-    name: "Google Cloud Platform",
-    url: "https://status.cloud.google.com/",
-    category: "Cloud Provider",
-    statusPageType: "google",
-  },
-  {
     name: "AWS",
     url: "https://health.aws.amazon.com/health/status",
     category: "Cloud Provider",
@@ -97,6 +90,126 @@ export const websites = [
     category: "Cloud Provider",
     statusPageType: "custom",
   },
+
+  // Google Cloud Platform
+  {
+    name: "Google Cloud Platform",
+    url: "https://status.cloud.google.com/",
+    category: "Cloud Provider",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Compute Engine",
+    url: "https://status.cloud.google.com/products/compute",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - BigQuery",
+    url: "https://status.cloud.google.com/products/bigquery",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Cloud Storage",
+    url: "https://status.cloud.google.com/products/storage",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Cloud SQL",
+    url: "https://status.cloud.google.com/products/sql",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Kubernetes Engine",
+    url: "https://status.cloud.google.com/products/kubernetes-engine",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Cloud Functions",
+    url: "https://status.cloud.google.com/products/functions",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Cloud Run",
+    url: "https://status.cloud.google.com/products/run",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Cloud - Vertex AI",
+    url: "https://status.cloud.google.com/products/vertexai",
+    category: "Google Cloud",
+    statusPageType: "google",
+  },
+
+  // Google Workspace
+  {
+    name: "Google Workspace",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Productivity",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Gmail",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Drive",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Meet",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Calendar",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Docs",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Sheets",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Slides",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Google Chat",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+  {
+    name: "Google Workspace - Gemini",
+    url: "https://www.google.com/appsstatus/dashboard/",
+    category: "Google Workspace",
+    statusPageType: "google",
+  },
+
+  // Firebase
   {
     name: "Firebase",
     url: "https://status.firebase.google.com/",
@@ -250,7 +363,7 @@ export const websites = [
   // Communication
   {
     name: "Discord",
-    url: `https://discordstatus.com/${base_url_atlassian}`,
+    url: `https://discordstatus.com/api/v2/status.json`,
     category: "Communication",
   },
   {
@@ -276,10 +389,42 @@ export const websites = [
     category: "Communication",
     statusPageType: "custom",
   },
+
+  // Meta Services
   {
-    name: "WhatsApp Business",
-    url: "https://status.whatsapp.com/",
-    category: "Communication",
+    name: "Meta",
+    url: "https://metastatus.com/",
+    category: "Social",
+    statusPageType: "custom",
+  },
+  {
+    name: "Meta - Facebook",
+    url: "https://metastatus.com/",
+    category: "Meta",
+    statusPageType: "custom",
+  },
+  {
+    name: "Meta - Instagram",
+    url: "https://metastatus.com/",
+    category: "Meta",
+    statusPageType: "custom",
+  },
+  {
+    name: "Meta - WhatsApp",
+    url: "https://metastatus.com/",
+    category: "Meta",
+    statusPageType: "custom",
+  },
+  {
+    name: "Meta - Threads",
+    url: "https://metastatus.com/",
+    category: "Meta",
+    statusPageType: "custom",
+  },
+  {
+    name: "Meta - Messenger",
+    url: "https://metastatus.com/",
+    category: "Meta",
     statusPageType: "custom",
   },
 
@@ -355,9 +500,8 @@ export const websites = [
   // Authentication & Security
   {
     name: "Auth0",
-    url: `https://status.auth0.com/${base_url_atlassian}`,
+    url: `https://status.auth0.com/api/v2/status.json`,
     category: "Authentication",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Clerk",
@@ -367,9 +511,19 @@ export const websites = [
   },
   {
     name: "Okta",
-    url: `https://status.okta.com/${base_url_atlassian}`,
+    url: `https://status.okta.com/api/v2/status.json`,
     category: "Authentication",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
+  },
+  {
+    name: "1Password",
+    url: `https://status.1password.com/api/v2/status.json`,
+    category: "Security",
+  },
+  {
+    name: "Bitwarden",
+    url: "https://status.bitwarden.com/",
+    category: "Security",
+    statusPageType: "custom",
   },
 
   // Content & Media
@@ -390,17 +544,15 @@ export const websites = [
   },
   {
     name: "Strapi",
-    url: `https://status.strapi.io/${base_url_atlassian}`,
+    url: `https://status.strapi.io/api/v2/status.json`,
     category: "CMS",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
 
   // Payment & E-commerce
   {
     name: "Stripe",
-    url: `https://status.stripe.com/${base_url_atlassian}`,
+    url: `https://status.stripe.com/api/v2/status.json`,
     category: "Payment",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Shopify",
@@ -413,6 +565,11 @@ export const websites = [
     url: "https://www.paypal-status.com/",
     category: "Payment",
     statusPageType: "custom",
+  },
+  {
+    name: "Pagar.me",
+    url: `https://status.pagar.me/api/v2/status.json`,
+    category: "Payment",
   },
 
   // Email & Communication
@@ -434,17 +591,15 @@ export const websites = [
   },
   {
     name: "Postmark",
-    url: `https://status.postmarkapp.com/${base_url_atlassian}`,
+    url: `https://status.postmarkapp.com/api/v2/status.json`,
     category: "Email",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
 
   // Search & Analytics
   {
     name: "Algolia",
-    url: `https://status.algolia.com/${base_url_atlassian}`,
+    url: `https://status.algolia.com/api/v2/status.json`,
     category: "Search",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "Elasticsearch",
@@ -464,10 +619,9 @@ export const websites = [
     category: "Social",
   },
   {
-    name: "Meta",
-    url: "https://metastatus.com/",
+    name: "Pinterest",
+    url: `https://www.pintereststatus.com/api/v2/status.json`,
     category: "Social",
-    statusPageType: "custom",
   },
   {
     name: "Bluesky",
@@ -521,9 +675,8 @@ export const websites = [
   // CDN & Performance
   {
     name: "Fastly",
-    url: `https://status.fastly.com/${base_url_atlassian}`,
+    url: `https://status.fastly.com/api/v2/status.json`,
     category: "CDN",
-    statusPageType: "custom", // Marcado como custom pois está na lista de domínios externos
   },
   {
     name: "KeyCDN",
@@ -570,7 +723,7 @@ export const websites = [
   },
   {
     name: "Coda",
-    url: `https://status.coda.io/api/v2/status.json`, // Corrigido: removido statusPageType: "custom"
+    url: `https://status.coda.io/api/v2/status.json`,
     category: "Productivity",
   },
 
@@ -584,20 +737,6 @@ export const websites = [
     name: "InVision",
     url: "https://status.invisionapp.com/",
     category: "Design",
-    statusPageType: "custom",
-  },
-
-  // More Security
-  {
-    name: "1Password",
-    url: "https://status.1password.com/",
-    category: "Security",
-    statusPageType: "custom",
-  },
-  {
-    name: "Bitwarden",
-    url: "https://status.bitwarden.com/",
-    category: "Security",
     statusPageType: "custom",
   },
 ]
