@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ServiceCard } from "@/components/service-card"
 import { StatsOverview } from "@/components/stats-overview"
 import { websites } from "@/data/sites"
-import { Search, Zap, Filter, Github, Share2 } from "lucide-react"
+import { Search, Zap, Filter, Github, Share2, Rss, ExternalLink, HelpCircle } from "lucide-react"
 import type { WebsiteData } from "@/types"
 import { ContributeButton } from "@/components/contribute-button"
 import { RefreshButton } from "@/components/refresh-button"
@@ -22,6 +22,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [monitoringFilter, setMonitoringFilter] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const { toast } = useToast()
 
@@ -129,6 +130,10 @@ export default function HomePage() {
     setStatusFilter(status)
   }
 
+  const handleMonitoringFilter = (type: string | null) => {
+    setMonitoringFilter(type === monitoringFilter ? null : type)
+  }
+
   const handleShare = async () => {
     try {
       // Check if Web Share API is available and supported
@@ -193,6 +198,32 @@ export default function HomePage() {
       }
       return true
     })
+    .filter((data) => {
+      if (!monitoringFilter) return true
+
+      if (monitoringFilter === "external") {
+        return data.status.indicator === "external" || data.status.description === "External status page"
+      }
+
+      if (monitoringFilter === "status-api") {
+        return data.url.includes("api/v2/status.json")
+      }
+
+      if (monitoringFilter === "summary-api") {
+        return data.url.includes("api/v2/summary.json")
+      }
+
+      if (monitoringFilter === "custom") {
+        return (
+          !data.url.includes("api/v2/status.json") &&
+          !data.url.includes("api/v2/summary.json") &&
+          data.status.indicator !== "external" &&
+          data.status.description !== "External status page"
+        )
+      }
+
+      return true
+    })
 
   // Count services by status type
   const stats = {
@@ -211,12 +242,36 @@ export default function HomePage() {
     external: websiteData.filter((d) => d.status.indicator === "external").length, // External services count
   }
 
+  // Count services by monitoring type
+  const monitoringStats = {
+    external: websiteData.filter(
+      (d) => d.status.indicator === "external" || d.status.description === "External status page",
+    ).length,
+    statusApi: websiteData.filter((d) => d.url.includes("api/v2/status.json")).length,
+    summaryApi: websiteData.filter((d) => d.url.includes("api/v2/summary.json")).length,
+    custom: websiteData.filter(
+      (d) =>
+        !d.url.includes("api/v2/status.json") &&
+        !d.url.includes("api/v2/summary.json") &&
+        d.status.indicator !== "external" &&
+        d.status.description !== "External status page",
+    ).length,
+  }
+
   const getFilterDisplayText = () => {
     if (statusFilter === "all") return "All Services"
     if (statusFilter === "operational") return `Operational Services (${stats.operational})`
     if (statusFilter === "issues") return `Services with Issues (${stats.issues})`
     if (statusFilter === "unknown") return `Fetch Errors (${stats.unknown})`
     return "All Services"
+  }
+
+  const getMonitoringFilterDisplayText = () => {
+    if (monitoringFilter === "external") return `External Pages (${monitoringStats.external})`
+    if (monitoringFilter === "status-api") return `Status API (${monitoringStats.statusApi})`
+    if (monitoringFilter === "summary-api") return `Summary API (${monitoringStats.summaryApi})`
+    if (monitoringFilter === "custom") return `Custom (${monitoringStats.custom})`
+    return null
   }
 
   console.log("Current filter:", statusFilter, "Filtered websites count:", filteredWebsites.length)
@@ -323,21 +378,38 @@ export default function HomePage() {
           </Card>
 
           {/* Active Filter Display */}
-          {statusFilter !== "all" && (
-            <div className="mb-6">
-              <div className="flex items-center gap-3 text-sm">
-                <Filter className="w-4 h-4 text-blue-400" />
-                <span className="text-zinc-300">Filtering by:</span>
-                <Badge
-                  variant="outline"
-                  className="bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-500/20"
-                  onClick={() => setStatusFilter("all")}
-                >
-                  {getFilterDisplayText()} ✕
-                </Badge>
-              </div>
+          <div className="mb-6">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              {statusFilter !== "all" && (
+                <>
+                  <Filter className="w-4 h-4 text-blue-400" />
+                  <span className="text-zinc-300">Status:</span>
+                  <Badge
+                    variant="outline"
+                    className="bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-pointer hover:bg-blue-500/20"
+                    onClick={() => setStatusFilter("all")}
+                  >
+                    {getFilterDisplayText()} ✕
+                  </Badge>
+                </>
+              )}
+
+              {monitoringFilter && (
+                <>
+                  {statusFilter !== "all" && <span className="mx-2">•</span>}
+                  <Rss className="w-4 h-4 text-indigo-400" />
+                  <span className="text-zinc-300">Monitoring:</span>
+                  <Badge
+                    variant="outline"
+                    className="bg-indigo-500/10 border-indigo-500/30 text-indigo-400 cursor-pointer hover:bg-indigo-500/20"
+                    onClick={() => setMonitoringFilter(null)}
+                  >
+                    {getMonitoringFilterDisplayText()} ✕
+                  </Badge>
+                </>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Category Filter */}
           <div className="mb-8">
@@ -367,6 +439,64 @@ export default function HomePage() {
                   {category}
                 </Badge>
               ))}
+            </div>
+          </div>
+
+          {/* Monitoring Type Filter */}
+          <div className="mb-8">
+            <h3 className="text-sm font-medium text-zinc-400 mb-3">Monitoring Type</h3>
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                variant={monitoringFilter === "external" ? "default" : "outline"}
+                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                  monitoringFilter === "external"
+                    ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                    : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                }`}
+                onClick={() => handleMonitoringFilter("external")}
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span>External Page ({monitoringStats.external})</span>
+              </Badge>
+
+              <Badge
+                variant={monitoringFilter === "status-api" ? "default" : "outline"}
+                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                  monitoringFilter === "status-api"
+                    ? "bg-blue-500/30 text-blue-100 hover:bg-blue-500/40"
+                    : "border-blue-500/20 text-blue-300 hover:bg-blue-500/10"
+                }`}
+                onClick={() => handleMonitoringFilter("status-api")}
+              >
+                <Rss className="w-3 h-3" />
+                <span>Status API ({monitoringStats.statusApi})</span>
+              </Badge>
+
+              <Badge
+                variant={monitoringFilter === "summary-api" ? "default" : "outline"}
+                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                  monitoringFilter === "summary-api"
+                    ? "bg-indigo-500/30 text-indigo-100 hover:bg-indigo-500/40"
+                    : "border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/10"
+                }`}
+                onClick={() => handleMonitoringFilter("summary-api")}
+              >
+                <Rss className="w-3 h-3" />
+                <span>Summary API ({monitoringStats.summaryApi})</span>
+              </Badge>
+
+              <Badge
+                variant={monitoringFilter === "custom" ? "default" : "outline"}
+                className={`cursor-pointer px-3 py-1.5 flex items-center gap-1.5 ${
+                  monitoringFilter === "custom"
+                    ? "bg-amber-500/30 text-amber-100 hover:bg-amber-500/40"
+                    : "border-amber-500/20 text-amber-300 hover:bg-amber-500/10"
+                }`}
+                onClick={() => handleMonitoringFilter("custom")}
+              >
+                <HelpCircle className="w-3 h-3" />
+                <span>Custom ({monitoringStats.custom})</span>
+              </Badge>
             </div>
           </div>
 

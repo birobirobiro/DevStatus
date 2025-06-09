@@ -7,7 +7,18 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { CheckCircle, AlertTriangle, XCircle, Info, HelpCircle, Clock, Globe, ArrowUpRight } from "lucide-react"
+import {
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  Info,
+  HelpCircle,
+  Clock,
+  Globe,
+  ArrowUpRight,
+  Rss,
+  ExternalLink,
+} from "lucide-react"
 import { getServiceIcon } from "@/lib/service-icons"
 import type { WebsiteData } from "@/types"
 import { useEffect, useState } from "react"
@@ -195,6 +206,41 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
   const isExternalService =
     website.status.indicator === "external" || website.status.description === "External status page"
 
+  // Determinar o tipo de monitoramento para o badge
+  const getMonitoringType = () => {
+    if (isExternalService) {
+      return {
+        label: "External Page",
+        icon: <ExternalLink className="w-3 h-3" />,
+        color: "bg-zinc-700 text-zinc-300 border-zinc-600",
+        tooltip: "Status is monitored via external status page",
+      }
+    } else if (website.url.includes("api/v2/status.json")) {
+      return {
+        label: "Status API",
+        icon: <Rss className="w-3 h-3" />,
+        color: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+        tooltip: "Status is monitored via direct API integration",
+      }
+    } else if (website.url.includes("api/v2/summary.json")) {
+      return {
+        label: "Summary API",
+        icon: <Rss className="w-3 h-3" />,
+        color: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+        tooltip: "Status is monitored via summary API integration",
+      }
+    } else {
+      return {
+        label: "Custom",
+        icon: <HelpCircle className="w-3 h-3" />,
+        color: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+        tooltip: "Status is monitored via custom integration",
+      }
+    }
+  }
+
+  const monitoringType = getMonitoringType()
+
   if (loading) {
     return (
       <Card className="h-[320px] overflow-hidden bg-zinc-900/50 border-zinc-800">
@@ -250,7 +296,25 @@ export function ServiceCard({ website, loading, onStatusFilter, currentFilter }:
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-zinc-100 truncate text-lg">{website.page?.name || website.name}</h3>
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-semibold text-zinc-100 truncate text-lg">{website.page?.name || website.name}</h3>
+
+                {/* Badge de tipo de monitoramento */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] py-0 px-1.5 h-5 ${monitoringType.color} flex items-center gap-1`}
+                    >
+                      {monitoringType.icon}
+                      <span className="hidden sm:inline">{monitoringType.label}</span>
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>{monitoringType.tooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Badge variant="secondary" className="text-xs mt-1 bg-zinc-800 text-zinc-300 border-zinc-700">
                 {website.category}
               </Badge>

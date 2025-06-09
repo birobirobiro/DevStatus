@@ -570,9 +570,8 @@ export const websites = [
   },
   {
     name: "Coda",
-    url: "https://status.coda.io/",
+    url: `https://status.coda.io/api/v2/status.json`, // Corrigido: removido statusPageType: "custom"
     category: "Productivity",
-    statusPageType: "custom",
   },
 
   // More Design Tools
