@@ -35,7 +35,16 @@ import {
   Quote,
   Eye,
   Edit3,
+  Trash2,
+  MoreHorizontal,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -552,15 +561,53 @@ export function GitHubCommentsSection({ serviceId, serviceName }: GitHubComments
                           {new Date(comment.timestamp).toLocaleDateString()} at{" "}
                           {new Date(comment.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
-                        <a
-                          href={comment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-zinc-500 hover:text-blue-400 flex items-center gap-1 transition-colors ml-auto"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          <span className="hidden sm:inline">View on GitHub</span>
-                        </a>
+                        
+                        {/* Comment Actions Dropdown */}
+                        <div className="ml-auto">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-zinc-500 hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-zinc-800 border-zinc-700">
+                              <DropdownMenuItem
+                                onClick={() => window.open(comment.url, "_blank")}
+                                className="text-zinc-300 hover:text-zinc-100 cursor-pointer"
+                              >
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                View on GitHub
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-zinc-700" />
+                              <DropdownMenuItem
+                                onClick={() => window.open(`${comment.url}#partial-edit`, "_blank")}
+                                className="text-blue-400 hover:text-blue-300 cursor-pointer"
+                              >
+                                <Edit3 className="w-4 h-4 mr-2" />
+                                Edit on GitHub
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  if (confirm("This will delete your comment on GitHub. Continue?")) {
+                                    window.open(comment.url, "_blank");
+                                    toast({
+                                      title: "Delete on GitHub",
+                                      description: "Click the '...' menu and select 'Delete' on the GitHub page.",
+                                    });
+                                  }
+                                }}
+                                className="text-red-400 hover:text-red-300 cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete on GitHub
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
 
                       {/* Comment Body with Markdown */}
