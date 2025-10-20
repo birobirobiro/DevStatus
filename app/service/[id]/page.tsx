@@ -20,10 +20,13 @@ import {
   Activity,
   MessageSquare,
   TrendingUp,
+  Globe,
+  Link2,
 } from "lucide-react";
 import { ReportButton } from "@/components/report-button";
 import { ReportsChart } from "@/components/reports-chart";
 import { GitHubCommentsSection } from "@/components/github-comments-section";
+import { EmptyState } from "@/components/empty-state";
 import { getServiceIcon } from "@/services/service-icons";
 import { LogoFetcher } from "@/services/logo-fetcher";
 import { ReportsStorage } from "@/lib/reports-storage";
@@ -315,7 +318,7 @@ export default function ServicePage() {
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             {/* Components Status */}
-            {!isExternalService && serviceData.components && serviceData.components.length > 0 && (
+            {!isExternalService && serviceData.components && serviceData.components.length > 0 ? (
               <Card className="bg-zinc-900/50 border-zinc-800">
                 <CardHeader>
                   <CardTitle className="text-zinc-100">Service Components</CardTitle>
@@ -354,6 +357,28 @@ export default function ServicePage() {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            ) : isExternalService ? (
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="py-12">
+                  <EmptyState
+                    icon={Globe}
+                    title="External Status Page"
+                    description={`${serviceData.name} uses an external status page that doesn't provide API access. Visit their official status page to see detailed component information.`}
+                    actionLabel="Visit Status Page"
+                    onAction={() => window.open(serviceData.page?.url || serviceData.url, "_blank")}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="py-12">
+                  <EmptyState
+                    icon={Activity}
+                    title="No Component Details Available"
+                    description="This service doesn't expose individual component status information."
+                  />
                 </CardContent>
               </Card>
             )}
