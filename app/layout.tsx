@@ -1,21 +1,24 @@
-import type React from "react"
-import type { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import type React from "react";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
-})
+});
 
 export const viewport: Viewport = {
-  themeColor: "#18181b",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#18181b" }
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-}
+};
 
 export const metadata: Metadata = {
   title: "DevStatus - Real-time Developer Tools Monitoring",
@@ -45,7 +48,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "DevStatus - Developer Tools Monitoring",
-    description: "Real-time status monitoring for 100+ developer tools and services",
+    description:
+      "Real-time status monitoring for 100+ developer tools and services",
     type: "website",
     url: "https://devstatus.vercel.app",
     siteName: "DevStatus",
@@ -61,26 +65,31 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "DevStatus - Developer Tools Monitoring",
-    description: "Real-time status monitoring for 100+ developer tools and services",
+    description:
+      "Real-time status monitoring for 100+ developer tools and services",
     images: ["/og-image.png"],
     creator: "@devstatus",
   },
   manifest: "/site.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" }
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }
+    ],
+    shortcut: [{ url: "/icon.svg", type: "image/svg+xml" }],
   },
   generator: "v0.dev",
   category: "Technology",
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
@@ -90,5 +99,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

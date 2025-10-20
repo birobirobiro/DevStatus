@@ -1,9 +1,8 @@
 "use client";
 
-import type React from "react";
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -16,76 +15,74 @@ import {
   CheckCircle,
   AlertTriangle,
   XCircle,
-  Info,
-  HelpCircle,
   Clock,
-  Globe,
-  ArrowUpRight,
-  Rss,
   ExternalLink,
+  AlertCircle as AlertCircleIcon,
+  Star,
+  TrendingUp,
 } from "lucide-react";
-import { getServiceIcon } from "@/lib/service-icons";
+import { getServiceIcon } from "@/services/service-icons";
+import { LogoFetcher } from "@/services/logo-fetcher";
 import type { WebsiteData } from "@/types";
 import { useEffect, useState } from "react";
-import { LogoFetcher } from "@/lib/logo-fetcher";
+import { useRouter } from "next/navigation";
+import { QuickReportDialog } from "@/components/quick-report-dialog";
+import { ReportsStorage } from "@/lib/reports-storage";
+import { FavoritesStorage } from "@/lib/favorites-storage";
 
 interface ServiceCardProps {
   website: WebsiteData;
   loading: boolean;
-  onStatusFilter: (status: string) => void;
-  currentFilter: string;
 }
 
-export function ServiceCard({
-  website,
-  loading,
-  onStatusFilter,
-  currentFilter,
-}: ServiceCardProps) {
+export function ServiceCard({ website, loading }: ServiceCardProps) {
+  const router = useRouter();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [isFetchingLogo, setIsFetchingLogo] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportStats, setReportStats] = useState({ lastHour: 0, last24Hours: 0, timeline: [] as number[] });
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
-    setIsFetchingLogo(true);
     setLogoUrl(null);
 
-    // Extrair o nome do serviço sem o prefixo da empresa
     const serviceName = website.page?.name || website.name;
-    const cleanServiceName = getCleanServiceName(serviceName);
 
-    if (cleanServiceName) {
-      LogoFetcher.fetchLogo(cleanServiceName)
+    if (serviceName) {
+      LogoFetcher.fetchLogo(serviceName)
         .then((result) => {
           if (result) {
             setLogoUrl(result.url);
           }
-          setIsFetchingLogo(false);
         })
         .catch(() => {
-          setIsFetchingLogo(false);
+          // Silent fail
         });
-    } else {
-      setIsFetchingLogo(false);
     }
   }, [website.name, website.page?.name]);
 
-  // Função para remover prefixos de empresa dos nomes de serviço
-  const getCleanServiceName = (name: string): string => {
-    // Remover prefixos comuns
-    if (name.startsWith("Google Workspace - ")) {
-      return name.replace("Google Workspace - ", "");
-    }
-    if (name.startsWith("Google Cloud - ")) {
-      return name.replace("Google Cloud - ", "");
-    }
-    if (name.startsWith("Microsoft 365 - ")) {
-      return name.replace("Microsoft 365 - ", "");
-    }
-    if (name.startsWith("Meta - ")) {
-      return name.replace("Meta - ", "");
-    }
-    return name;
-  };
+  useEffect(() => {
+    const updateStats = () => {
+      const stats = ReportsStorage.getReportStats(website.name);
+      const timeline = ReportsStorage.getReportTimeline(website.name, 12);
+      setReportStats({
+        lastHour: stats.lastHour,
+        last24Hours: stats.last24Hours,
+        timeline: timeline.map(t => t.count),
+      });
+      setIsFavorite(FavoritesStorage.isFavorite(website.name));
+    };
+
+    updateStats();
+
+    const handleUpdate = () => updateStats();
+    window.addEventListener("reportsUpdated", handleUpdate);
+    window.addEventListener("favoritesUpdated", handleUpdate);
+
+    return () => {
+      window.removeEventListener("reportsUpdated", handleUpdate);
+      window.removeEventListener("favoritesUpdated", handleUpdate);
+    };
+  }, [website.name]);
 
   const getStatusInfo = () => {
     const desc = website.status.description?.toLowerCase();
@@ -93,218 +90,96 @@ export function ServiceCard({
 
     if (desc === "all systems operational" || indicator === "none") {
       return {
-        icon: <CheckCircle className="w-4 h-4" />,
+        icon: CheckCircle,
         color: "text-emerald-400",
         bgColor: "bg-emerald-500/10",
         borderColor: "border-emerald-500/20",
         dotColor: "bg-emerald-500",
         label: "Operational",
+        glow: false,
       };
     }
-    if (
-      desc?.includes("outage") ||
-      indicator === "major" ||
-      indicator === "critical"
-    ) {
+    if (desc?.includes("outage") || indicator === "major" || indicator === "critical") {
       return {
-        icon: <XCircle className="w-4 h-4" />,
+        icon: XCircle,
         color: "text-red-400",
         bgColor: "bg-red-500/10",
         borderColor: "border-red-500/20",
         dotColor: "bg-red-500",
         label: "Major Outage",
+        glow: true,
+        glowClass: "animate-glow-danger",
       };
     }
-    if (
-      desc?.includes("partial") ||
-      desc?.includes("degraded") ||
-      indicator === "minor"
-    ) {
+    if (desc?.includes("partial") || desc?.includes("degraded") || indicator === "minor") {
       return {
-        icon: <AlertTriangle className="w-4 h-4" />,
+        icon: AlertTriangle,
         color: "text-orange-400",
         bgColor: "bg-orange-500/10",
         borderColor: "border-orange-500/20",
         dotColor: "bg-orange-500",
         label: "Degraded",
-      };
-    }
-    if (desc?.includes("maintenance") || indicator === "maintenance") {
-      return {
-        icon: <Info className="w-4 h-4" />,
-        color: "text-blue-400",
-        bgColor: "bg-blue-500/10",
-        borderColor: "border-blue-500/20",
-        dotColor: "bg-blue-500",
-        label: "Maintenance",
-      };
-    }
-    if (indicator === "external" || desc === "external status page") {
-      return {
-        icon: <Globe className="w-4 h-4" />,
-        color: "text-zinc-400",
-        bgColor: "bg-zinc-500/10",
-        borderColor: "border-zinc-500/20",
-        dotColor: "bg-zinc-500",
-        label: "External",
+        glow: true,
+        glowClass: "animate-glow-warning",
       };
     }
     return {
-      icon: <HelpCircle className="w-4 h-4" />,
-      color: "text-red-400",
-      bgColor: "bg-red-500/10",
-      borderColor: "border-red-500/20",
-      dotColor: "bg-red-500",
-      label: "Error",
+      icon: CheckCircle,
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+      borderColor: "border-emerald-500/20",
+      dotColor: "bg-emerald-500",
+      label: "Operational",
+      glow: false,
     };
   };
 
-  const getStatusPageUrl = () => {
-    // Para serviços externos, use a URL direta da página
-    if (
-      website.status.indicator === "external" ||
-      website.status.description === "External status page"
-    ) {
-      return website.page?.url || website.url || "#";
-    }
-
-    if (!website.url) {
-      return "#";
-    }
-
-    // Para URLs que contêm vusercontent.net, usar a URL da página original
-    if (website.url.includes("vusercontent.net")) {
-      return website.page?.url || "#";
-    }
-
-    // Remove API endpoints from URL to get the main status page
-    return website.url
-      .replace("/api/v2/summary.json", "")
-      .replace("/api/v2/status.json", "")
-      .replace("/api/v2/", "");
+  const handleViewDetails = () => {
+    const serviceSlug = website.name.toLowerCase().replace(/\s+/g, "-");
+    router.push(`/service/${serviceSlug}`);
   };
 
-  const getFilterTypeForStatus = () => {
-    const desc = website.status.description?.toLowerCase();
-    const indicator = website.status.indicator?.toLowerCase();
-
-    // Operational
-    if (desc === "all systems operational" || indicator === "none") {
-      return "operational";
-    }
-
-    // Error (real errors only)
-    if (indicator === "error") {
-      return "unknown";
-    }
-
-    // External services don't participate in filtering
-    if (indicator === "external") {
-      return "external";
-    }
-
-    // Issues (everything else that's not operational, external, or error)
-    return "issues";
-  };
-
-  const isMatchingCurrentFilter = () => {
-    if (currentFilter === "all") return false;
-
-    const cardFilterType = getFilterTypeForStatus();
-
-    // External services don't get highlighted by filters
-    if (cardFilterType === "external") return false;
-
-    return cardFilterType === currentFilter;
-  };
-
-  const handleStatusClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Impede que o clique se propague para o card
-
-    const filterType = getFilterTypeForStatus();
-
-    // External services don't trigger filters
-    if (filterType === "external") return;
-
-    // Se já está filtrando por este tipo, remove o filtro
-    if (currentFilter === filterType) {
-      onStatusFilter("all");
-    } else {
-      // Senão, aplica o filtro deste tipo
-      onStatusFilter(filterType);
-    }
-  };
-
-  const handleCardClick = () => {
-    const statusPageUrl = getStatusPageUrl();
-    console.log(
-      `Redirecting to: ${statusPageUrl} for service: ${website.name}`
-    );
+  const handleStatusPage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const statusPageUrl = website.page?.url || website.url;
     if (statusPageUrl && statusPageUrl !== "#") {
       window.open(statusPageUrl, "_blank", "noopener,noreferrer");
     }
   };
 
-  const statusInfo = getStatusInfo();
-  const displayName = getCleanServiceName(website.page?.name || website.name);
-  const ServiceIcon = getServiceIcon(displayName);
-  const isHighlighted = isMatchingCurrentFilter();
-
-  // Verificar se é um serviço que não implementa status check
-  const isExternalService =
-    website.status.indicator === "external" ||
-    website.status.description === "External status page";
-
-  // Determinar o tipo de monitoramento para o badge
-  const getMonitoringType = () => {
-    if (isExternalService) {
-      return {
-        label: "External Page",
-        icon: <ExternalLink className="w-3 h-3" />,
-        color: "bg-zinc-700 text-zinc-300 border-zinc-600",
-        tooltip: "Status is monitored via external status page",
-      };
-    } else if (website.url.includes("api/v2/status.json")) {
-      return {
-        label: "Status API",
-        icon: <Rss className="w-3 h-3" />,
-        color: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-        tooltip: "Status is monitored via direct API integration",
-      };
-    } else if (website.url.includes("api/v2/summary.json")) {
-      return {
-        label: "Summary API",
-        icon: <Rss className="w-3 h-3" />,
-        color: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-        tooltip: "Status is monitored via summary API integration",
-      };
-    } else {
-      return {
-        label: "Custom",
-        icon: <HelpCircle className="w-3 h-3" />,
-        color: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-        tooltip: "Status is monitored via custom integration",
-      };
-    }
+  const handleReport = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setReportDialogOpen(true);
   };
 
-  const monitoringType = getMonitoringType();
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    FavoritesStorage.toggleFavorite(website.name);
+    setIsFavorite(!isFavorite);
+    window.dispatchEvent(new CustomEvent("favoritesUpdated"));
+  };
+
+  const statusInfo = getStatusInfo();
+  const displayName = website.page?.name || website.name;
+  const ServiceIcon = getServiceIcon(displayName);
+  const isExternalService = website.status.indicator === "external";
+  const hasHighActivity = reportStats.lastHour > 10;
 
   if (loading) {
     return (
-      <Card className="h-[320px] overflow-hidden bg-zinc-900/50 border-zinc-800">
+      <Card className="h-[380px] overflow-hidden bg-zinc-900/50 border-zinc-800 shimmer">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <Skeleton className="w-12 h-12 rounded-xl bg-zinc-800" />
+            <Skeleton className="w-14 h-14 rounded-xl bg-zinc-800" />
             <div className="flex-1">
-              <Skeleton className="h-5 w-3/4 mb-2 bg-zinc-800" />
+              <Skeleton className="h-6 w-3/4 mb-2 bg-zinc-800" />
               <Skeleton className="h-4 w-1/2 bg-zinc-800" />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-6 w-full mb-4 bg-zinc-800" />
-          <Skeleton className="h-24 w-full bg-zinc-800" />
+          <Skeleton className="h-24 w-full mb-4 bg-zinc-800" />
+          <Skeleton className="h-32 w-full bg-zinc-800" />
         </CardContent>
       </Card>
     );
@@ -313,183 +188,179 @@ export function ServiceCard({
   return (
     <TooltipProvider>
       <Card
-        className={`h-[320px] overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-zinc-900/20 hover:-translate-y-1 group cursor-pointer relative ${
-          isHighlighted
-            ? "bg-zinc-800/80 border-zinc-600 shadow-lg shadow-zinc-500/10"
-            : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700"
+        className={`h-[380px] overflow-hidden transition-all duration-300 hover:-translate-y-1 group relative backdrop-blur-sm bg-zinc-900/60 border-zinc-800/60 hover:border-zinc-700/80 hover:bg-zinc-800/70 cursor-pointer ${
+          statusInfo.glow ? statusInfo.glowClass : ""
         }`}
-        onClick={handleCardClick}
+        onClick={handleViewDetails}
       >
-        {/* Indicador de link externo no canto superior direito */}
-        <div className="absolute top-2 right-2 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">
-          <ArrowUpRight className="w-4 h-4" />
-        </div>
+        {/* Favorite Star */}
+        <button
+          onClick={handleFavorite}
+          className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-zinc-900/80 border border-zinc-700 hover:bg-zinc-800 transition-all"
+          type="button"
+          aria-label="Toggle favorite"
+        >
+          <Star
+            className={`w-4 h-4 transition-all ${
+              isFavorite ? "fill-yellow-400 text-yellow-400" : "text-zinc-400"
+            }`}
+          />
+        </button>
 
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-4">
+        <CardHeader className="pb-3">
+          <div className="flex items-start gap-3">
             <div className="relative">
-              <div className="w-12 h-12 bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center group-hover:border-zinc-600 transition-colors overflow-hidden">
+              <div className="w-14 h-14 bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center group-hover:border-zinc-600 transition-colors overflow-hidden">
                 {logoUrl ? (
                   <img
-                    src={logoUrl || "/placeholder.svg"}
+                    src={logoUrl}
                     alt={`${displayName} logo`}
-                    className="w-8 h-8 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
+                    className="w-9 h-9 object-contain brightness-0 invert opacity-80"
                     onError={() => setLogoUrl(null)}
                   />
                 ) : (
-                  <ServiceIcon className="w-6 h-6 text-zinc-300" />
+                  <ServiceIcon className="w-7 h-7 text-zinc-300" />
                 )}
               </div>
-              <div
-                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-zinc-900 ${statusInfo.dotColor}`}
-              />
+              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-zinc-900 ${statusInfo.dotColor}`} />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col w-full mb-2">
-                <h3 className="font-semibold text-zinc-100 truncate text-lg">
-                  {displayName}
-                </h3>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  <Badge
-                    variant="secondary"
-                    className="text-xs bg-zinc-800 text-zinc-300 border-zinc-700"
-                  >
-                    {website.category}
+            <div className="flex-1 min-w-0 pr-8">
+              <h3 className="font-semibold text-zinc-100 truncate text-base mb-1">
+                {displayName}
+              </h3>
+              <div className="flex flex-wrap gap-1">
+                <Badge variant="secondary" className="text-xs bg-zinc-800 text-zinc-300 border-zinc-700">
+                  {website.category}
+                </Badge>
+                {hasHighActivity && (
+                  <Badge className="text-xs bg-orange-500/20 text-orange-300 border-orange-500/30 flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    HIGH ACTIVITY
                   </Badge>
-
-                  {/* Badge de tipo de monitoramento - Corrigido para não sobrepor o título */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] py-0 px-1.5 h-5 ${monitoringType.color} flex items-center gap-1`}
-                      >
-                        {monitoringType.icon}
-                        <span className="hidden sm:inline">
-                          {monitoringType.label}
-                        </span>
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p>{monitoringType.tooltip}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
+                )}
               </div>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0">
-          {isExternalService ? (
-            <div className="space-y-4">
-              {/* Informações adicionais para serviços externos */}
-              <div className="bg-zinc-800/30 rounded-lg p-4 border border-zinc-800">
-                <h4 className="text-sm font-medium text-zinc-300 mb-2">
-                  About this service
-                </h4>
-                <p className="text-xs text-zinc-400 mb-2">
-                  {displayName} provides a dedicated status page that shows
-                  real-time information about their service health.
-                </p>
-                <div className="flex items-center gap-2 text-xs text-zinc-500">
-                  <Clock className="w-3 h-3" />
-                  <span>Updated in real-time on their status page</span>
-                </div>
-              </div>
+        <CardContent className="pt-0 space-y-3">
+          {/* Status Badge */}
+          <div className={`flex items-center gap-2 p-3 rounded-lg border ${statusInfo.bgColor} ${statusInfo.borderColor}`}>
+            <statusInfo.icon className={`w-4 h-4 ${statusInfo.color}`} />
+            <span className={`text-sm font-medium ${statusInfo.color} flex-1`}>
+              {website.status.description || statusInfo.label}
+            </span>
+          </div>
 
-              <div className="text-xs text-zinc-400 text-center">
-                Click anywhere on this card to visit the status page
-              </div>
+          {/* User Reports Section - SEMPRE VISÍVEL */}
+          <div className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                User Reports (24h)
+              </span>
+              {reportStats.last24Hours > 0 && (
+                <span className="text-xs font-semibold text-orange-400">
+                  {reportStats.last24Hours} total
+                </span>
+              )}
             </div>
-          ) : (
-            <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    className={`w-full flex items-center gap-3 p-4 rounded-xl border mb-4 cursor-pointer hover:opacity-80 transition-all duration-200 ${
-                      isHighlighted
-                        ? `${statusInfo.bgColor} ${statusInfo.borderColor} shadow-md`
-                        : `${statusInfo.bgColor} ${statusInfo.borderColor}`
-                    }`}
-                    onClick={handleStatusClick}
-                    type="button"
-                  >
-                    <div className={statusInfo.color}>{statusInfo.icon}</div>
-                    <span
-                      className={`text-sm font-medium ${statusInfo.color} text-left`}
-                    >
-                      {website.status.description || statusInfo.label}
-                    </span>
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Click to filter by {statusInfo.label.toLowerCase()} status
-                  </p>
-                </TooltipContent>
-              </Tooltip>
 
-              <div>
-                {website.components && website.components.length > 0 ? (
-                  <ScrollArea className="h-20 mb-4">
-                    <div className="space-y-2">
-                      {website.components.slice(0, 3).map((component) => (
-                        <div
-                          key={component.id}
-                          className="flex items-center gap-3 text-xs"
-                        >
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              component.status === "operational"
-                                ? "bg-emerald-500"
-                                : component.status.includes("outage")
-                                ? "bg-red-500"
-                                : component.status.includes("degraded")
-                                ? "bg-orange-500"
-                                : "bg-zinc-500"
-                            }`}
-                          />
-                          <span className="truncate flex-1 text-zinc-300">
-                            {component.name}
-                          </span>
-                        </div>
-                      ))}
-                      {website.components.length > 3 && (
-                        <p className="text-xs text-zinc-500 pl-5">
-                          +{website.components.length - 3} more components
-                        </p>
-                      )}
-                    </div>
-                  </ScrollArea>
-                ) : (
-                  <p className="text-xs text-zinc-500 mb-4">
-                    No component details available
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-                  <div className="flex items-center gap-2 text-xs text-zinc-500">
-                    <Clock className="w-3 h-3" />
-                    <span>
-                      {new Date(website.page.updated_at).toLocaleTimeString(
-                        [],
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
-                    </span>
-                  </div>
-                  <div className="text-xs text-zinc-400">
-                    Click to view status page
-                  </div>
-                </div>
+            {/* Sparkline */}
+            {reportStats.timeline.length > 0 && reportStats.last24Hours > 0 ? (
+              <div className="flex items-end h-12 gap-0.5 mb-2">
+                {reportStats.timeline.map((count, i) => {
+                  const maxCount = Math.max(...reportStats.timeline, 1);
+                  const height = (count / maxCount) * 100;
+                  const isRecent = i >= reportStats.timeline.length - 3;
+                  return (
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-t transition-all ${
+                        isRecent
+                          ? count > 0
+                            ? "bg-red-500"
+                            : "bg-zinc-700/30"
+                          : count > 0
+                          ? "bg-orange-500/70"
+                          : "bg-zinc-700/30"
+                      }`}
+                      style={{ height: `${height}%`, minHeight: height > 0 ? "4px" : "2px" }}
+                    />
+                  );
+                })}
               </div>
-            </>
-          )}
+            ) : (
+              <div className="h-12 flex items-center justify-center mb-2">
+                <span className="text-xs text-zinc-500">No user reports yet</span>
+              </div>
+            )}
+
+            {reportStats.lastHour > 0 && (
+              <div className="text-xs text-orange-400 font-medium flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                {reportStats.lastHour} in last hour
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReport}
+                  className="h-9 px-3 bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2"
+                >
+                  <AlertCircleIcon className="w-4 h-4" />
+                  <span className="text-xs font-medium">Report</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Report a problem</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStatusPage}
+                  className="h-9 px-3 bg-zinc-700/30 border-zinc-600 hover:bg-zinc-700/50 text-zinc-300 hover:text-zinc-100 flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="text-xs font-medium">Status</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Open status page</TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Last Updated + Click hint */}
+          <div className="flex items-center justify-between text-xs text-zinc-500 pt-1 border-t border-zinc-800">
+            <div className="flex items-center gap-2">
+              <Clock className="w-3 h-3" />
+              <span>
+                {new Date(website.page.updated_at).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+            <span className="text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
+              Click for details →
+            </span>
+          </div>
         </CardContent>
+
+        <QuickReportDialog
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
+          serviceId={website.name}
+          serviceName={website.name}
+        />
       </Card>
     </TooltipProvider>
   );
 }
+

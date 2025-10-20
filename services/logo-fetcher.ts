@@ -99,25 +99,14 @@ export class LogoFetcher {
       if (response.ok) {
         const data = await response.json()
         if (data && Array.isArray(data) && data.length > 0) {
-          const result = data[0]
-          let svgUrl = null
-
-          if (typeof result.route === "string") {
-            svgUrl = result.route
-          } else if (typeof result.route === "object" && result.route !== null) {
-            svgUrl = result.route.light || result.route.dark
-          }
-
-          if (svgUrl) {
-            if (svgUrl.startsWith("/")) {
-              svgUrl = `https://svgl.app${svgUrl}`
-            }
-            return { url: svgUrl, source: "svgl" }
+          return {
+            url: data[0].src,
+            source: "svgl",
           }
         }
       }
     } catch (error) {
-      // Silently fail and try next source
+      console.error("SVGL API error:", error)
     }
     return null
   }
@@ -127,21 +116,21 @@ export class LogoFetcher {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 3000)
 
-      // Simple Icons CDN format
-      const url = `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${searchTerm}.svg`
-
-      const response = await fetch(url, {
+      const response = await fetch(`https://cdn.simpleicons.org/${encodeURIComponent(searchTerm)}`, {
         signal: controller.signal,
-        method: "HEAD", // Just check if it exists
+        method: "HEAD",
       })
 
       clearTimeout(timeoutId)
 
       if (response.ok) {
-        return { url, source: "simple-icons" }
+        return {
+          url: `https://cdn.simpleicons.org/${encodeURIComponent(searchTerm)}`,
+          source: "simple-icons",
+        }
       }
     } catch (error) {
-      // Silently fail
+      console.error("Simple Icons API error:", error)
     }
     return null
   }
