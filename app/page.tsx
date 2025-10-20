@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/toaster";
 import { LiveIndicator } from "@/components/live-indicator";
 import { EmptyState } from "@/components/empty-state";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import Head from "next/head";
 import { useToast } from "@/components/ui/use-toast";
 import { ReportsStorage } from "@/lib/reports-storage";
@@ -425,6 +426,7 @@ export default function HomePage() {
             !loading && <EmptyState {...getEmptyStateProps()} />
           )}
         </div>
+        <ScrollToTop />
         <Toaster />
       </div>
     </>

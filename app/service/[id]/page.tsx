@@ -21,19 +21,24 @@ import {
   MessageSquare,
   TrendingUp,
   Globe,
-  Link2,
+  Github,
+  Heart,
 } from "lucide-react";
 import { ReportButton } from "@/components/report-button";
 import { ReportsChart } from "@/components/reports-chart";
 import { GitHubCommentsSection } from "@/components/github-comments-section";
 import { EmptyState } from "@/components/empty-state";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { getServiceIcon } from "@/services/service-icons";
 import { LogoFetcher } from "@/services/logo-fetcher";
 import { ReportsStorage } from "@/lib/reports-storage";
+import { FavoritesStorage } from "@/lib/favorites-storage";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ServicePage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const [serviceData, setServiceData] = useState<WebsiteData | null>(null);
   const [loading, setLoading] = useState(true);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -395,7 +400,66 @@ export default function ServicePage() {
             <GitHubCommentsSection serviceId={serviceData.name} serviceName={serviceData.name} />
           </TabsContent>
         </Tabs>
+
+        {/* Footer */}
+        <footer className="mt-16 pt-8 border-t border-zinc-800">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <p className="text-zinc-400 text-sm mb-2">
+                Monitoring {serviceData.name} • Data refreshes automatically
+              </p>
+              <p className="text-xs text-zinc-500">
+                Community-driven reports • Help us improve by sharing your experience
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/")}
+                className="text-zinc-400 hover:text-zinc-200"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                All Services
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="text-zinc-400 hover:text-zinc-200"
+              >
+                <a
+                  href="https://github.com/birobirobiro/DevStatus"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <Github className="h-4 w-4" />
+                  GitHub
+                </a>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const isFav = FavoritesStorage.isFavorite(serviceData.name);
+                  FavoritesStorage.toggleFavorite(serviceData.name);
+                  window.dispatchEvent(new CustomEvent("favoritesUpdated"));
+                  toast({
+                    title: isFav ? "Removed from favorites" : "Added to favorites",
+                    description: isFav ? `${serviceData.name} removed from your favorites` : `${serviceData.name} added to your favorites`,
+                  });
+                }}
+                className="text-zinc-400 hover:text-zinc-200"
+              >
+                <Heart className={`h-4 w-4 ${FavoritesStorage.isFavorite(serviceData.name) ? "fill-pink-400 text-pink-400" : ""}`} />
+              </Button>
+            </div>
+          </div>
+        </footer>
       </div>
+
+      <ScrollToTop />
     </div>
   );
 }
