@@ -13,6 +13,9 @@ import {
   Github,
   Share2,
   PartyPopper,
+  CheckCircle,
+  TrendingUp,
+  Heart,
 } from "lucide-react";
 import type { WebsiteData } from "@/types";
 import { ContributeButton } from "@/components/contribute-button";
@@ -425,6 +428,39 @@ export default function HomePage() {
           ) : (
             !loading && <EmptyState {...getEmptyStateProps()} />
           )}
+
+          {/* Footer */}
+          <footer className="mt-20 pt-8 border-t border-zinc-800">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-center md:text-left">
+                <p className="text-zinc-400 mb-2">
+                  Built for developers • Data refreshes every 5 minutes • {websiteData.length} services monitored
+                </p>
+                <p className="text-xs text-zinc-500">
+                  Open source project • Community-driven reports • Help us improve
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-zinc-400 hover:text-zinc-200"
+                >
+                  <a
+                    href="https://github.com/birobirobiro/DevStatus"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    <Github className="h-4 w-4" />
+                    <span>GitHub</span>
+                  </a>
+                </Button>
+                <ContributeButton />
+              </div>
+            </div>
+          </footer>
         </div>
         <ScrollToTop />
         <Toaster />
