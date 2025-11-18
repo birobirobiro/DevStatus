@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -94,9 +95,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
-        <ThemeProvider defaultTheme="dark" storageKey="devstatus-theme">
-          {children}
-        </ThemeProvider>
+        <NuqsAdapter>
+          <ThemeProvider defaultTheme="dark" storageKey="devstatus-theme">
+            {children}
+          </ThemeProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

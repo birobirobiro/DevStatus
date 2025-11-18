@@ -29,13 +29,23 @@ import Head from "next/head";
 import { useToast } from "@/components/ui/use-toast";
 import { ReportsStorage } from "@/lib/reports-storage";
 import { FavoritesStorage } from "@/lib/favorites-storage";
+import { useQueryState, parseAsString } from "nuqs";
 
 export default function HomePage() {
   const [websiteData, setWebsiteData] = useState<WebsiteData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useQueryState(
+    "search",
+    parseAsString.withDefault("")
+  );
+  const [selectedCategory, setSelectedCategory] = useQueryState(
+    "category",
+    parseAsString.withDefault(null)
+  );
+  const [statusFilter, setStatusFilter] = useQueryState(
+    "status",
+    parseAsString.withDefault("all")
+  );
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const { toast } = useToast();
 
@@ -369,7 +379,7 @@ export default function HomePage() {
                 <Input
                   type="search"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value || null)}
                   placeholder="Search developer tools and services..."
                   className="pl-12 h-12 text-base bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600"
                 />
@@ -401,7 +411,7 @@ export default function HomePage() {
                             ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
                             : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                         }`}
-                        onClick={() => setSelectedCategory(category)}
+                        onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
                       >
                         {category} ({count})
                       </Badge>
