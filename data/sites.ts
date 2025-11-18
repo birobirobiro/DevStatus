@@ -864,6 +864,13 @@ export const websites = [
     category: "Government",
     statusPageType: "custom",
   },
+
+  // Suggested by community
+  {
+    name: "Pinterest",
+    url: "https://www.pintereststatus.com/api/v2/status.json",
+    category: "Social",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
