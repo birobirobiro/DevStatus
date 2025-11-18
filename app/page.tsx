@@ -30,6 +30,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { ReportsStorage } from "@/lib/reports-storage";
 import { FavoritesStorage } from "@/lib/favorites-storage";
 import { useQueryState, parseAsString } from "nuqs";
+import { parseIncidentIoRSS } from "@/lib/incidentio-rss";
+import { parseHotmartStatus } from "@/lib/hotmart-status";
+import { parseAppMaxStatus } from "@/lib/appmax-status";
 
 export default function HomePage() {
   const [websiteData, setWebsiteData] = useState<WebsiteData[]>([]);
@@ -57,6 +60,112 @@ export default function HomePage() {
     try {
       setLoading(true);
       const dataPromises = websites.map(async (website) => {
+        // Handle incident.io RSS feeds
+        if (website.statusPageType === "incidentio") {
+          // Try to get RSS feed URL (usually /feed.rss)
+          const baseUrl = website.url.replace(/\/$/, "");
+          const rssUrl = `${baseUrl}/feed.rss`;
+          
+          try {
+            return await parseIncidentIoRSS(
+              rssUrl,
+              website.name,
+              website.url,
+              website.category
+            );
+          } catch (error) {
+            // parseIncidentIoRSS already returns error state, but catch here as fallback
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Error fetching incident.io RSS for ${website.name}:`, error);
+            }
+            return {
+              page: {
+                id: website.name,
+                name: website.name,
+                url: website.url,
+                updated_at: new Date().toISOString(),
+              },
+              components: [],
+              status: {
+                description: "Error fetching status",
+                indicator: "error",
+              },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            } as WebsiteData;
+          }
+        }
+
+        // Handle Hotmart status API
+        if (website.statusPageType === "hotmart") {
+          try {
+            return await parseHotmartStatus(
+              website.name,
+              website.url,
+              website.category
+            );
+          } catch (error) {
+            // parseHotmartStatus already returns error state, but catch here as fallback
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Error fetching Hotmart status for ${website.name}:`, error);
+            }
+            return {
+              page: {
+                id: website.name,
+                name: website.name,
+                url: website.url,
+                updated_at: new Date().toISOString(),
+              },
+              components: [],
+              status: {
+                description: "Error fetching status",
+                indicator: "error",
+              },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            } as WebsiteData;
+          }
+        }
+
+        // Handle AppMax status API
+        if (website.statusPageType === "appmax") {
+          try {
+            const baseUrl = `https://${new URL(website.url).hostname}`;
+            return await parseAppMaxStatus(
+              website.url, // The URL is the API endpoint
+              website.name,
+              baseUrl,
+              website.category
+            );
+          } catch (error) {
+            // parseAppMaxStatus already returns error state, but catch here as fallback
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Error fetching AppMax status for ${website.name}:`, error);
+            }
+            return {
+              page: {
+                id: website.name,
+                name: website.name,
+                url: website.url,
+                updated_at: new Date().toISOString(),
+              },
+              components: [],
+              status: {
+                description: "Error fetching status",
+                indicator: "error",
+              },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            } as WebsiteData;
+          }
+        }
+
         const isExternalOnlyService =
           website.statusPageType === "google" ||
           website.statusPageType === "azure" ||
@@ -67,7 +176,6 @@ export default function HomePage() {
           website.statusPageType === "custom" ||
           website.statusPageType === "betterstack" ||
           website.statusPageType === "statusio" ||
-          website.statusPageType === "incidentio" ||
           website.statusPageType === "statuspal" ||
           website.statusPageType === "instatus" ||
           website.statusPageType === "microsoft" ||

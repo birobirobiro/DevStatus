@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { websites } from "@/data/sites";
 import type { WebsiteData } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -34,10 +34,14 @@ import { LogoFetcher } from "@/services/logo-fetcher";
 import { ReportsStorage } from "@/lib/reports-storage";
 import { FavoritesStorage } from "@/lib/favorites-storage";
 import { useToast } from "@/components/ui/use-toast";
+import { parseIncidentIoRSS } from "@/lib/incidentio-rss";
+import { parseHotmartStatus } from "@/lib/hotmart-status";
+import { parseAppMaxStatus } from "@/lib/appmax-status";
 
 export default function ServicePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [serviceData, setServiceData] = useState<WebsiteData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,65 +55,44 @@ export default function ServicePage() {
       const website = websites.find((w) => w.name.toLowerCase().replace(/\s+/g, "-") === serviceId);
 
       if (!website) {
-        router.push("/");
+        // Preserve query params when redirecting
+        const params = new URLSearchParams(searchParams.toString());
+        const queryString = params.toString();
+        const homeUrl = queryString ? `/?${queryString}` : "/";
+        router.push(homeUrl);
         return;
       }
 
       setLoading(true);
 
       try {
-        // Load logo
-        LogoFetcher.fetchLogo(website.name).then((result) => {
-          if (result) setLogoUrl(result.url);
-        });
-
-        // Check if external service
-        const isExternalOnlyService =
-          website.statusPageType === "google" ||
-          website.statusPageType === "azure" ||
-          website.statusPageType === "jenkins" ||
-          website.statusPageType === "adobe" ||
-          website.statusPageType === "sketch" ||
-          website.statusPageType === "apple" ||
-          website.statusPageType === "custom" ||
-          website.statusPageType === "betterstack" ||
-          website.statusPageType === "statusio" ||
-          website.statusPageType === "incidentio" ||
-          website.statusPageType === "statuspal" ||
-          website.statusPageType === "instatus" ||
-          website.statusPageType === "microsoft";
-
-        if (isExternalOnlyService) {
-          setServiceData({
-            page: {
-              id: website.name,
-              name: website.name,
-              url: website.url,
-              updated_at: new Date().toISOString(),
-            },
-            components: [],
-            status: {
-              description: "External status page",
-              indicator: "external",
-            },
-            name: website.name,
-            category: website.category,
-            statusPageType: website.statusPageType,
-            url: website.url,
+        // Load logo (silently fail if logo fetch fails)
+        LogoFetcher.fetchLogo(website.name)
+          .then((result) => {
+            if (result) setLogoUrl(result.url);
+          })
+          .catch(() => {
+            // Silently handle logo fetch errors
           });
-        } else {
+
+        // Handle incident.io RSS feeds
+        if (website.statusPageType === "incidentio") {
+          const baseUrl = website.url.replace(/\/$/, "");
+          const rssUrl = `${baseUrl}/feed.rss`;
+          
           try {
-            const response = await fetch(website.url);
-            const data = await response.json();
-            setServiceData({
-              ...data,
-              name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
-              url: website.url,
-            });
+            const data = await parseIncidentIoRSS(
+              rssUrl,
+              website.name,
+              website.url,
+              website.category
+            );
+            setServiceData(data);
           } catch (error) {
-            console.error("Error fetching service data:", error);
+            // parseIncidentIoRSS already returns error state, but catch here as fallback
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Error fetching incident.io RSS for ${website.name}:`, error);
+            }
             setServiceData({
               page: {
                 id: website.name,
@@ -128,7 +111,142 @@ export default function ServicePage() {
               url: website.url,
             });
           }
+        } else if (website.statusPageType === "hotmart") {
+          // Handle Hotmart status API
+          try {
+            const data = await parseHotmartStatus(
+              website.name,
+              website.url,
+              website.category
+            );
+            setServiceData(data);
+          } catch (error) {
+            // parseHotmartStatus already returns error state, but catch here as fallback
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Error fetching Hotmart status for ${website.name}:`, error);
+            }
+            setServiceData({
+              page: {
+                id: website.name,
+                name: website.name,
+                url: website.url,
+                updated_at: new Date().toISOString(),
+              },
+              components: [],
+              status: {
+                description: "Error fetching status",
+                indicator: "error",
+              },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "appmax") {
+          // Handle AppMax status API
+          try {
+            const baseUrl = `https://${new URL(website.url).hostname}`;
+            const data = await parseAppMaxStatus(
+              website.url, // The URL is the API endpoint
+              website.name,
+              baseUrl,
+              website.category
+            );
+            setServiceData(data);
+          } catch (error) {
+            // parseAppMaxStatus already returns error state, but catch here as fallback
+            if (process.env.NODE_ENV === "development") {
+              console.debug(`Error fetching AppMax status for ${website.name}:`, error);
+            }
+            setServiceData({
+              page: {
+                id: website.name,
+                name: website.name,
+                url: website.url,
+                updated_at: new Date().toISOString(),
+              },
+              components: [],
+              status: {
+                description: "Error fetching status",
+                indicator: "error",
+              },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else {
+          // Check if external service
+          const isExternalOnlyService =
+            website.statusPageType === "google" ||
+            website.statusPageType === "azure" ||
+            website.statusPageType === "jenkins" ||
+            website.statusPageType === "adobe" ||
+            website.statusPageType === "sketch" ||
+            website.statusPageType === "apple" ||
+            website.statusPageType === "custom" ||
+            website.statusPageType === "betterstack" ||
+            website.statusPageType === "statusio" ||
+            website.statusPageType === "statuspal" ||
+            website.statusPageType === "instatus" ||
+            website.statusPageType === "microsoft";
+
+          if (isExternalOnlyService) {
+            setServiceData({
+              page: {
+                id: website.name,
+                name: website.name,
+                url: website.url,
+                updated_at: new Date().toISOString(),
+              },
+              components: [],
+              status: {
+                description: "External status page",
+                indicator: "external",
+              },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          } else {
+            try {
+              const response = await fetch(website.url);
+              const data = await response.json();
+              setServiceData({
+                ...data,
+                name: website.name,
+                category: website.category,
+                statusPageType: website.statusPageType,
+                url: website.url,
+              });
+            } catch (error) {
+              console.error("Error fetching service data:", error);
+              setServiceData({
+                page: {
+                  id: website.name,
+                  name: website.name,
+                  url: website.url,
+                  updated_at: new Date().toISOString(),
+                },
+                components: [],
+                status: {
+                  description: "Error fetching status",
+                  indicator: "error",
+                },
+                name: website.name,
+                category: website.category,
+                statusPageType: website.statusPageType,
+                url: website.url,
+              });
+            }
+          }
         }
+      } catch (error) {
+        console.error("Error loading service:", error);
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -213,7 +331,19 @@ export default function ServicePage() {
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => router.push("/")}
+          onClick={() => {
+            // Preserve query params when going back
+            const params = new URLSearchParams(searchParams.toString());
+            const queryString = params.toString();
+            const backUrl = queryString ? `/?${queryString}` : "/";
+            
+            // Try to go back in history, fallback to home with params
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push(backUrl);
+            }
+          }}
           className="mb-8 text-zinc-400 hover:text-zinc-100"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -330,7 +460,19 @@ export default function ServicePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {serviceData.components.map((component) => (
+                    {[...serviceData.components]
+                      .sort((a, b) => {
+                        // Components with problems first
+                        const aIsOperational = a.status === "operational";
+                        const bIsOperational = b.status === "operational";
+                        
+                        if (aIsOperational && !bIsOperational) return 1;
+                        if (!aIsOperational && bIsOperational) return -1;
+                        
+                        // If both have same operational status, maintain original order
+                        return 0;
+                      })
+                      .map((component) => (
                       <div
                         key={component.id}
                         className="flex items-center justify-between p-4 bg-zinc-800/50 rounded-lg border border-zinc-800"
@@ -416,7 +558,19 @@ export default function ServicePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/")}
+                onClick={() => {
+                  // Preserve query params when going back
+                  const params = new URLSearchParams(searchParams.toString());
+                  const queryString = params.toString();
+                  const backUrl = queryString ? `/?${queryString}` : "/";
+                  
+                  // Try to go back in history, fallback to home with params
+                  if (window.history.length > 1) {
+                    router.back();
+                  } else {
+                    router.push(backUrl);
+                  }
+                }}
                 className="text-zinc-400 hover:text-zinc-200"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />

@@ -7,33 +7,43 @@ export class LogoFetcher {
   private static cache = new Map<string, LogoResult | null>()
 
   static async fetchLogo(serviceName: string): Promise<LogoResult | null> {
-    // Check cache first
-    const cacheKey = serviceName.toLowerCase()
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey) || null
-    }
-
-    const searchTerms = this.generateSearchTerms(serviceName)
-
-    for (const term of searchTerms) {
-      // Try SVGL API first
-      const svglResult = await this.tryFetchFromSVGL(term)
-      if (svglResult) {
-        this.cache.set(cacheKey, svglResult)
-        return svglResult
+    try {
+      // Check cache first
+      const cacheKey = serviceName.toLowerCase()
+      if (this.cache.has(cacheKey)) {
+        return this.cache.get(cacheKey) || null
       }
 
-      // Try Simple Icons as fallback
-      const simpleIconsResult = await this.tryFetchFromSimpleIcons(term)
-      if (simpleIconsResult) {
-        this.cache.set(cacheKey, simpleIconsResult)
-        return simpleIconsResult
-      }
-    }
+      const searchTerms = this.generateSearchTerms(serviceName)
 
-    // Cache miss result
-    this.cache.set(cacheKey, null)
-    return null
+      for (const term of searchTerms) {
+        try {
+          // Try SVGL API first
+          const svglResult = await this.tryFetchFromSVGL(term)
+          if (svglResult) {
+            this.cache.set(cacheKey, svglResult)
+            return svglResult
+          }
+
+          // Try Simple Icons as fallback
+          const simpleIconsResult = await this.tryFetchFromSimpleIcons(term)
+          if (simpleIconsResult) {
+            this.cache.set(cacheKey, simpleIconsResult)
+            return simpleIconsResult
+          }
+        } catch (error) {
+          // Continue to next search term if this one fails
+          continue
+        }
+      }
+
+      // Cache miss result
+      this.cache.set(cacheKey, null)
+      return null
+    } catch (error) {
+      // Silently handle any unexpected errors
+      return null
+    }
   }
 
   private static generateSearchTerms(serviceName: string): string[] {
@@ -106,7 +116,14 @@ export class LogoFetcher {
         }
       }
     } catch (error) {
-      console.error("SVGL API error:", error)
+      // Silently handle fetch errors (network issues, CORS, timeouts, etc.)
+      // Don't log to avoid console spam
+      if (error instanceof Error && error.name !== "AbortError") {
+        // Only log non-timeout errors in development
+        if (process.env.NODE_ENV === "development") {
+          console.debug("SVGL API error:", error.message)
+        }
+      }
     }
     return null
   }
@@ -130,7 +147,14 @@ export class LogoFetcher {
         }
       }
     } catch (error) {
-      console.error("Simple Icons API error:", error)
+      // Silently handle fetch errors (network issues, CORS, timeouts, etc.)
+      // Don't log to avoid console spam
+      if (error instanceof Error && error.name !== "AbortError") {
+        // Only log non-timeout errors in development
+        if (process.env.NODE_ENV === "development") {
+          console.debug("Simple Icons API error:", error.message)
+        }
+      }
     }
     return null
   }

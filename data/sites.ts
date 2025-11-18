@@ -629,6 +629,16 @@ export const websites = [
 
   // Payment & E-commerce
   {
+    name: "Lojaintegrada",
+    url: "https://status.lojaintegrada.com.br/api/v2/status.json",
+    category: "E-commerce",
+  },
+  {
+    name: "Nuvemshop",
+    url: "https://status.nuvemshop.com.br/api/v2/status.json",
+    category: "E-commerce",
+  },
+  {
     name: "Stripe",
     url: `https://status.stripe.com/api/v2/status.json`,
     category: "Payment",
@@ -640,6 +650,28 @@ export const websites = [
     statusPageType: "custom",
   },
   {
+    name: "VTEX",
+    url: "https://status.vtex.com/",
+    category: "E-commerce",
+    statusPageType: "incidentio",
+  },
+  {
+    name: "Tray",
+    url: `https://status.tray.com.br/api/v2/status.json`,
+    category: "E-commerce",
+  },
+  {
+    name: "Yampi",
+    url: `https://status.yampi.com.br/api/v2/status.json`,
+    category: "E-commerce",
+  },
+  {
+    name: "Hotmart",
+    url: "https://status.hotmart.com/en",
+    category: "E-commerce",
+    statusPageType: "hotmart",
+  },
+  {
     name: "PayPal",
     url: "https://www.paypal-status.com/",
     category: "Payment",
@@ -649,6 +681,12 @@ export const websites = [
     name: "Pagar.me",
     url: `https://status.pagar.me/api/v2/status.json`,
     category: "Payment",
+  },
+  {
+    name: "AppMax",
+    url: "https://status.appmax.com.br/api/getEventFeed/4ARzFvD1hF",
+    category: "Payment",
+    statusPageType: "appmax",
   },
 
   // Email & Communication

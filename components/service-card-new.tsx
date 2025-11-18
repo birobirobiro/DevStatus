@@ -26,7 +26,7 @@ import { getServiceIcon } from "@/services/service-icons";
 import { LogoFetcher } from "@/services/logo-fetcher";
 import type { WebsiteData } from "@/types";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { QuickReportDialog } from "@/components/quick-report-dialog";
 import { ReportsStorage } from "@/lib/reports-storage";
 import { FavoritesStorage } from "@/lib/favorites-storage";
@@ -38,6 +38,7 @@ interface ServiceCardProps {
 
 export function ServiceCardNew({ website, loading }: ServiceCardProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportStats, setReportStats] = useState({ lastHour: 0, last24Hours: 0, timeline: [] as number[] });
@@ -138,7 +139,13 @@ export function ServiceCardNew({ website, loading }: ServiceCardProps) {
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
     const serviceSlug = website.name.toLowerCase().replace(/\s+/g, "-");
-    router.push(`/service/${serviceSlug}`);
+    // Preserve query params when navigating to service page
+    const params = new URLSearchParams(searchParams.toString());
+    const queryString = params.toString();
+    const serviceUrl = queryString 
+      ? `/service/${serviceSlug}?${queryString}`
+      : `/service/${serviceSlug}`;
+    router.push(serviceUrl);
   };
 
   const handleStatusPage = (e: React.MouseEvent) => {
