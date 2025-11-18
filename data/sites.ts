@@ -492,7 +492,7 @@ export const websites = [
   },
   {
     name: "Claude (Anthropic)",
-    url: `https://status.anthropic.com/${base_url_atlassian}`,
+    url: `https://status.claude.com/api/v2/status.json`,
     category: "AI/ML",
   },
   {
