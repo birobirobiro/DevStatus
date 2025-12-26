@@ -864,6 +864,13 @@ export const websites = [
     category: "Government",
     statusPageType: "custom",
   },
+
+  // Suggested by community
+  {
+    name: "Wake",
+    url: "https://status.fbits.net/",
+    category: "E-commerce",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
