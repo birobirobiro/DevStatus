@@ -871,6 +871,13 @@ export const websites = [
     url: "https://status.fbits.net/",
     category: "E-commerce",
   },
+
+  // Suggested by community
+  {
+    name: "Supabase",
+    url: "https://status.supabase.com/api/v2/status.json",
+    category: "Database",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
