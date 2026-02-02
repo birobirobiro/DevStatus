@@ -871,6 +871,13 @@ export const websites = [
     url: "https://status.fbits.net/",
     category: "E-commerce",
   },
+
+  // Suggested by community
+  {
+    name: "Kimi (Moonshot)",
+    url: "https://status.moonshot.cn/api/v2/status.json",
+    category: "AI/ML",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
