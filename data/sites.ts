@@ -878,6 +878,14 @@ export const websites = [
     url: "https://status.moonshot.cn/api/v2/status.json",
     category: "AI/ML",
   },
+
+  // Suggested by community
+  {
+    name: "Zed",
+    url: "https://status.zed.dev/",
+    category: "AI Code Editor",
+    statusPageType: "custom",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
