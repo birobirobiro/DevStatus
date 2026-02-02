@@ -894,6 +894,14 @@ export const websites = [
     category: "AI/ML",
     statusPageType: "custom",
   },
+
+  // Suggested by community
+  {
+    name: "Nota Fiscal Eletrônica",
+    url: "https://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?AspxAutoDetectCookieSupport=1",
+    category: "Government",
+    statusPageType: "custom",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
