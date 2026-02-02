@@ -886,6 +886,14 @@ export const websites = [
     category: "AI Code Editor",
     statusPageType: "custom",
   },
+
+  // Suggested by community
+  {
+    name: "Hugging Face",
+    url: "https://status.huggingface.co/",
+    category: "AI/ML",
+    statusPageType: "custom",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
