@@ -886,6 +886,13 @@ export const websites = [
     category: "AI Code Editor",
     statusPageType: "custom",
   },
+
+  // Suggested by community
+  {
+    name: "Fly.io",
+    url: "https://status.flyio.net/api/v2/status.json",
+    category: "Cloud Provider",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
