@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from "next-themes";
 import { websites } from "@/data/sites";
 import type { WebsiteData } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -37,11 +38,27 @@ import { useToast } from "@/components/ui/use-toast";
 import { parseIncidentIoRSS } from "@/lib/incidentio-rss";
 import { parseHotmartStatus } from "@/lib/hotmart-status";
 import { parseAppMaxStatus } from "@/lib/appmax-status";
+import { parsePayPalStatus } from "@/lib/paypal-parser";
+import { parseXboxStatus } from "@/lib/xbox-parser";
+import { parsePlayStationStatus } from "@/lib/playstation-parser";
+import { parseUptimeKuma } from "@/lib/uptimekuma-parser";
+import { parseStatusIo } from "@/lib/statusio-parser";
+import { parseBetterStack } from "@/lib/betterstack-parser";
+import { parseInstatus } from "@/lib/instatus-parser";
+import { parsePostmarkStatus } from "@/lib/postmark-parser";
+import { parseOpenStatus } from "@/lib/openstatus-parser";
+import { parseOnlineOrNot } from "@/lib/onlineornot-parser";
+import { parseGoogleStatus } from "@/lib/google-parser";
+import { parseOhDear } from "@/lib/ohdear-parser";
+import { parseSalesforce } from "@/lib/salesforce-parser";
+import { parsePagerDuty } from "@/lib/pagerduty-parser";
+import { parseUptimeRobot } from "@/lib/uptimerobot-parser";
 
 export default function ServicePage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { theme } = useTheme();
   const { toast } = useToast();
   const [serviceData, setServiceData] = useState<WebsiteData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +86,12 @@ export default function ServicePage() {
         // Load logo (silently fail if logo fetch fails)
         LogoFetcher.fetchLogo(website.name)
           .then((result) => {
-            if (result) setLogoUrl(result.url);
+            if (result) {
+              const finalUrl = theme === 'dark' && result.darkUrl ? result.darkUrl :
+                theme === 'light' && result.lightUrl ? result.lightUrl :
+                result.url;
+              setLogoUrl(finalUrl);
+            }
           })
           .catch(() => {
             // Silently handle logo fetch errors
@@ -177,20 +199,242 @@ export default function ServicePage() {
               url: website.url,
             });
           }
+        } else if (website.statusPageType === "paypal") {
+          try {
+            const baseUrl = `https://${new URL(website.url).hostname}`;
+            const data = await parsePayPalStatus(baseUrl, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "xbox") {
+          try {
+            const data = await parseXboxStatus(website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "playstation") {
+          try {
+            const data = await parsePlayStationStatus(website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "uptimekuma") {
+          try {
+            const data = await parseUptimeKuma(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "statusio") {
+          try {
+            const data = await parseStatusIo(website.url, website.name, website.url, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "betterstack") {
+          try {
+            const data = await parseBetterStack(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "instatus") {
+          try {
+            const data = await parseInstatus(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "postmark") {
+          try {
+            const data = await parsePostmarkStatus(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "openstatus") {
+          try {
+            const data = await parseOpenStatus(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "onlineornot") {
+          try {
+            const data = await parseOnlineOrNot(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "ohdear") {
+          try {
+            const data = await parseOhDear(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "salesforce") {
+          try {
+            const data = await parseSalesforce(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "pagerduty") {
+          try {
+            const data = await parsePagerDuty(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "uptimerobot") {
+          try {
+            const data = await parseUptimeRobot(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
+        } else if (website.statusPageType === "google") {
+          try {
+            const data = await parseGoogleStatus(website.url, website.name, website.category);
+            setServiceData(data);
+          } catch (error) {
+            setServiceData({
+              page: { id: website.name, name: website.name, url: website.url, updated_at: new Date().toISOString() },
+              components: [],
+              status: { description: "Error fetching status", indicator: "error" },
+              name: website.name,
+              category: website.category,
+              statusPageType: website.statusPageType,
+              url: website.url,
+            });
+          }
         } else {
           // Check if external service
           const isExternalOnlyService =
-            website.statusPageType === "google" ||
             website.statusPageType === "azure" ||
             website.statusPageType === "jenkins" ||
             website.statusPageType === "adobe" ||
             website.statusPageType === "sketch" ||
             website.statusPageType === "apple" ||
             website.statusPageType === "custom" ||
-            website.statusPageType === "betterstack" ||
-            website.statusPageType === "statusio" ||
             website.statusPageType === "statuspal" ||
-            website.statusPageType === "instatus" ||
             website.statusPageType === "microsoft";
 
           if (isExternalOnlyService) {
@@ -213,7 +457,13 @@ export default function ServicePage() {
             });
           } else {
             try {
-              const response = await fetch(website.url);
+              // Use proxy for API endpoints to avoid CORS
+              const needsProxy = website.url.includes('api/v2/summary.json') || 
+                                website.url.includes('api/v2/status.json');
+              const fetchUrl = needsProxy 
+                ? `/api/proxy/json?url=${encodeURIComponent(website.url)}`
+                : website.url;
+              const response = await fetch(fetchUrl);
               const data = await response.json();
               setServiceData({
                 ...data,
@@ -332,17 +582,8 @@ export default function ServicePage() {
         <Button
           variant="ghost"
           onClick={() => {
-            // Preserve query params when going back
-            const params = new URLSearchParams(searchParams.toString());
-            const queryString = params.toString();
-            const backUrl = queryString ? `/?${queryString}` : "/";
-            
-            // Try to go back in history, fallback to home with params
-            if (window.history.length > 1) {
-              router.back();
-            } else {
-              router.push(backUrl);
-            }
+            // Clear search state and go back
+            router.push("/");
           }}
           className="mb-8 text-zinc-400 hover:text-zinc-100"
         >
@@ -360,7 +601,7 @@ export default function ServicePage() {
                     <img
                       src={logoUrl}
                       alt={`${serviceData.name} logo`}
-                      className="w-12 h-12 object-contain brightness-0 invert opacity-80"
+                      className="w-12 h-12 object-contain"
                       onError={() => setLogoUrl(null)}
                     />
                   ) : (
@@ -559,17 +800,8 @@ export default function ServicePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  // Preserve query params when going back
-                  const params = new URLSearchParams(searchParams.toString());
-                  const queryString = params.toString();
-                  const backUrl = queryString ? `/?${queryString}` : "/";
-                  
-                  // Try to go back in history, fallback to home with params
-                  if (window.history.length > 1) {
-                    router.back();
-                  } else {
-                    router.push(backUrl);
-                  }
+                  // Clear search state and go back
+                  router.push("/");
                 }}
                 className="text-zinc-400 hover:text-zinc-200"
               >
