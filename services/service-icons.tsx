@@ -248,6 +248,53 @@ const serviceIconMap: Record<string, any> = {
   TensorFlow: BrainCircuit,
   PyTorch: BrainCircuit,
   "Py Torch": BrainCircuit,
+  Manus: Bot,
+  OpenAI: Bot,
+  "Open AI": Bot,
+  Claude: Bot,
+  "Claude AI": Bot,
+  Perplexity: Bot,
+  DeepSeek: Bot,
+  "Deep Seek": Bot,
+  Cohere: Bot,
+  Replicate: Bot,
+  "Stability AI": Bot,
+  Midjourney: Bot,
+  ElevenLabs: Bot,
+  "Eleven Labs": Bot,
+  xAI: Bot,
+  "x AI": Bot,
+  Grok: Bot,
+  TogetherAI: Bot,
+  "Together AI": Bot,
+  Kimi: Bot,
+  Moonshot: Bot,
+  Gemini: Bot,
+
+  // Package Managers
+  RubyGems: Package,
+  Ruby: Package,
+
+  // Design Tools
+  Adobe: Palette,
+  "Adobe Creative Cloud": Palette,
+  Sketch: Palette,
+  "Adobe XD": Palette,
+  XD: Palette,
+  Photoshop: Palette,
+  Illustrator: Palette,
+
+  // Social & Media
+  VSCO: ImageIcon,
+  Beacons: Globe,
+
+  // CRM & Business
+  Salesforce: Briefcase,
+  "Salesforce CRM": Briefcase,
+
+  // Deployment & CI/CD
+  Octopus: Settings,
+  "Octopus Deploy": Settings,
 
   // IoT & Hardware
   Arduino: Server,
@@ -265,6 +312,21 @@ const serviceIconMap: Record<string, any> = {
   PowerBI: PieChart,
   Tableau: PieChart,
   Looker: PieChart,
+
+  // Brazilian Services (fallback icons)
+  Hotmart: ShoppingCart,
+  AppMax: CreditCard,
+  Wake: ShoppingCart,
+  Yampi: ShoppingCart,
+  Tray: ShoppingCart,
+  "Pagar.me": CreditCard,
+  Pagarme: CreditCard,
+  Lojaintegrada: ShoppingCart,
+  "Loja Integrada": ShoppingCart,
+  Nuvemshop: ShoppingCart,
+  "Nuvem Shop": ShoppingCart,
+  AbacatePay: CreditCard,
+  "Abacate Pay": CreditCard,
 }
 
 export function getServiceIcon(serviceName: string) {

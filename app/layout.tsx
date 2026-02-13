@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { QueryProvider } from "@/components/query-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -95,11 +96,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className={`${inter.className} antialiased`}>
-        <NuqsAdapter>
-          <ThemeProvider defaultTheme="dark" storageKey="devstatus-theme">
-            {children}
-          </ThemeProvider>
-        </NuqsAdapter>
+        <QueryProvider>
+          <NuqsAdapter>
+            <ThemeProvider defaultTheme="dark" storageKey="devstatus-theme">
+              {children}
+            </ThemeProvider>
+          </NuqsAdapter>
+        </QueryProvider>
       </body>
     </html>
   );

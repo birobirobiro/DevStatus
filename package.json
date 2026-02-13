@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/build/generate-icons.mjs && next build",
+    "build": "node scripts/validate-duplicates.mjs && node scripts/build/generate-icons.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "validate": "node scripts/validate-duplicates.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -38,6 +39,10 @@
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "latest",
     "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/query-sync-storage-persister": "^5.90.22",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
+    "@tanstack/react-query-persist-client": "^5.90.22",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -46,9 +51,11 @@
     "embla-carousel-react": "8.5.1",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
+    "motion": "^12.34.0",
     "next": "15.2.8",
     "next-themes": "latest",
     "nuqs": "^2.8.0",
+    "radix-ui": "latest",
     "react": "^19",
     "react-day-picker": "8.10.1",
     "react-dom": "^19",

@@ -5,12 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { useTheme } from "next-themes";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   CheckCircle,
   AlertTriangle,
@@ -20,15 +16,63 @@ import {
   AlertCircle as AlertCircleIcon,
   Star,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { getServiceIcon } from "@/services/service-icons";
-import { LogoFetcher } from "@/services/logo-fetcher";
+import { useLogo } from "@/hooks/use-logo";
 import type { WebsiteData } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { QuickReportDialog } from "@/components/quick-report-dialog";
 import { ReportsStorage } from "@/lib/reports-storage";
 import { FavoritesStorage } from "@/lib/favorites-storage";
+
+// Provider display names for tooltips
+const providerNames: Record<string, string> = {
+  atlassian: "Atlassian Statuspage",
+  google: "Google Workspace Status",
+  microsoft: "Microsoft 365 Status",
+  incidentio: "Incident.io",
+  apple: "Apple System Status",
+  hotmart: "Hotmart Status",
+  appmax: "AppMax Status",
+  postmark: "Postmark Status",
+  openstatus: "OpenStatus",
+  statusio: "Status.io",
+  betterstack: "Better Stack",
+  instatus: "Instatus",
+  statuspal: "Statuspal",
+  onlineornot: "OnlineOrNot",
+  paypal: "PayPal Status",
+  salesforce: "Salesforce Status",
+  ohdear: "Oh Dear",
+  pagerduty: "PagerDuty",
+  xbox: "Xbox Live Status",
+  playstation: "PlayStation Network Status",
+  uptimekuma: "Uptime Kuma",
+  tiktok: "TikTok Status",
+  uptimerobot: "UptimeRobot",
+  custom: "Custom Status Page",
+};
+
+function ProviderIcon({ type }: { type: string }) {
+  const providerName = providerNames[type] || type;
+  
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="w-5 h-5 bg-zinc-800/60 border border-zinc-700/40 rounded flex items-center justify-center cursor-help">
+            <Activity className="w-3 h-3 text-zinc-500" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="bg-zinc-900 border-zinc-700">
+          <p className="text-xs text-zinc-300">Status page powered by {providerName}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 interface ServiceCardProps {
   website: WebsiteData;
@@ -38,28 +82,25 @@ interface ServiceCardProps {
 export function ServiceCard({ website, loading }: ServiceCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const { theme } = useTheme();
+  const serviceName = website.name;
+  const { data: logoResult } = useLogo(serviceName);
+  const logoUrl = logoResult?.url ? (
+    theme === 'dark' && logoResult.darkUrl ? logoResult.darkUrl :
+    theme === 'light' && logoResult.lightUrl ? logoResult.lightUrl :
+    logoResult.url
+  ) : null;
+  const [imgLoadError, setImgLoadError] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportStats, setReportStats] = useState({ lastHour: 0, last24Hours: 0, timeline: [] as number[] });
   const [isFavorite, setIsFavorite] = useState(false);
 
+  // Reset image error state when logo URL changes
   useEffect(() => {
-    setLogoUrl(null);
-
-    const serviceName = website.page?.name || website.name;
-
-    if (serviceName) {
-      LogoFetcher.fetchLogo(serviceName)
-        .then((result) => {
-          if (result) {
-            setLogoUrl(result.url);
-          }
-        })
-        .catch(() => {
-          // Silent fail
-        });
+    if (logoUrl) {
+      setImgLoadError(false);
     }
-  }, [website.name, website.page?.name]);
+  }, [logoUrl]);
 
   useEffect(() => {
     const updateStats = () => {
@@ -137,13 +178,8 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
 
   const handleViewDetails = () => {
     const serviceSlug = website.name.toLowerCase().replace(/\s+/g, "-");
-    // Preserve query params when navigating to service page
-    const params = new URLSearchParams(searchParams.toString());
-    const queryString = params.toString();
-    const serviceUrl = queryString 
-      ? `/service/${serviceSlug}?${queryString}`
-      : `/service/${serviceSlug}`;
-    router.push(serviceUrl);
+    // Navigate to service page without preserving search params
+    router.push(`/service/${serviceSlug}`);
   };
 
   const handleStatusPage = (e: React.MouseEvent) => {
@@ -167,7 +203,7 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
   };
 
   const statusInfo = getStatusInfo();
-  const displayName = website.page?.name || website.name;
+  const displayName = website.name;
   const ServiceIcon = getServiceIcon(displayName);
   const isExternalService = website.status.indicator === "external";
   const hasHighActivity = reportStats.lastHour > 10;
@@ -218,12 +254,13 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
           <div className="flex items-start gap-3">
             <div className="relative">
               <div className="w-14 h-14 bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center group-hover:border-zinc-600 transition-colors overflow-hidden">
-                {logoUrl ? (
+                {logoUrl && !imgLoadError ? (
                   <img
                     src={logoUrl}
                     alt={`${displayName} logo`}
-                    className="w-9 h-9 object-contain brightness-0 invert opacity-80"
-                    onError={() => setLogoUrl(null)}
+                    className="w-9 h-9 object-contain"
+                    onError={() => setImgLoadError(true)}
+                    key={logoUrl}
                   />
                 ) : (
                   <ServiceIcon className="w-7 h-7 text-zinc-300" />
@@ -231,14 +268,17 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
               </div>
               <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-zinc-900 ${statusInfo.dotColor}`} />
             </div>
-            <div className="flex-1 min-w-0 pr-8">
+              <div className="flex-1 min-w-0 pr-8">
               <h3 className="font-semibold text-zinc-100 truncate text-base mb-1">
                 {displayName}
               </h3>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 items-center">
                 <Badge variant="secondary" className="text-xs bg-zinc-800 text-zinc-300 border-zinc-700">
                   {website.category}
                 </Badge>
+                {website.statusPageType && website.statusPageType !== "custom" && (
+                  <ProviderIcon type={website.statusPageType} />
+                )}
                 {hasHighActivity && (
                   <Badge className="text-xs bg-orange-500/20 text-orange-300 border-orange-500/30 flex items-center gap-1">
                     <TrendingUp className="w-3 h-3" />

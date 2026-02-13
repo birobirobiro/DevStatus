@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTheme } from "next-themes";
 import {
   Tooltip,
   TooltipContent,
@@ -23,7 +24,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { getServiceIcon } from "@/services/service-icons";
-import { LogoFetcher } from "@/services/logo-fetcher";
+import { useLogo } from "@/hooks/use-logo";
 import type { WebsiteData } from "@/types";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -39,28 +40,18 @@ interface ServiceCardProps {
 export function ServiceCardNew({ website, loading }: ServiceCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const { theme } = useTheme();
+  const serviceName = website.name;
+  const { data: logoResult } = useLogo(serviceName);
+  const [logoError, setLogoError] = useState(false);
+  const logoUrl = !logoError && logoResult?.url ? (
+    theme === 'dark' && logoResult.darkUrl ? logoResult.darkUrl :
+    theme === 'light' && logoResult.lightUrl ? logoResult.lightUrl :
+    logoResult.url
+  ) : null;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportStats, setReportStats] = useState({ lastHour: 0, last24Hours: 0, timeline: [] as number[] });
   const [isFavorite, setIsFavorite] = useState(false);
-
-  useEffect(() => {
-    setLogoUrl(null);
-
-    const serviceName = website.page?.name || website.name;
-
-    if (serviceName) {
-      LogoFetcher.fetchLogo(serviceName)
-        .then((result) => {
-          if (result) {
-            setLogoUrl(result.url);
-          }
-        })
-        .catch(() => {
-          // Silent fail
-        });
-    }
-  }, [website.name, website.page?.name]);
 
   useEffect(() => {
     const updateStats = () => {
@@ -169,7 +160,7 @@ export function ServiceCardNew({ website, loading }: ServiceCardProps) {
   };
 
   const statusInfo = getStatusInfo();
-  const displayName = website.page?.name || website.name;
+  const displayName = website.name;
   const ServiceIcon = getServiceIcon(displayName);
   const isExternalService = website.status.indicator === "external";
   const hasHighActivity = reportStats.lastHour > 10;
@@ -223,8 +214,8 @@ export function ServiceCardNew({ website, loading }: ServiceCardProps) {
                   <img
                     src={logoUrl}
                     alt={`${displayName} logo`}
-                    className="w-9 h-9 object-contain brightness-0 invert opacity-80"
-                    onError={() => setLogoUrl(null)}
+                    className="w-9 h-9 object-contain"
+                    onError={() => setLogoError(true)}
                   />
                 ) : (
                   <ServiceIcon className="w-7 h-7 text-zinc-300" />

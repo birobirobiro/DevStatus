@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ServiceCard } from "@/components/service-card";
+import { ServiceCardSkeleton } from "@/components/service-card-skeleton";
 import { StatsOverview } from "@/components/stats-overview";
 import { websites } from "@/data/sites";
 import {
@@ -17,7 +18,6 @@ import {
   TrendingUp,
   Heart,
 } from "lucide-react";
-import type { WebsiteData } from "@/types";
 import { ContributeButton } from "@/components/contribute-button";
 import { RefreshButton } from "@/components/refresh-button";
 import { Button } from "@/components/ui/button";
@@ -30,20 +30,20 @@ import { useToast } from "@/components/ui/use-toast";
 import { ReportsStorage } from "@/lib/reports-storage";
 import { FavoritesStorage } from "@/lib/favorites-storage";
 import { useQueryState, parseAsString } from "nuqs";
-import { parseIncidentIoRSS } from "@/lib/incidentio-rss";
-import { parseHotmartStatus } from "@/lib/hotmart-status";
-import { parseAppMaxStatus } from "@/lib/appmax-status";
+import { useServicesData } from "@/hooks/use-services-data";
+import { SearchBar } from "@/components/siddz-ui/search-bar";
+import { FilterSelector } from "@/components/siddz-ui/filter-selector";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function HomePage() {
-  const [websiteData, setWebsiteData] = useState<WebsiteData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useQueryState(
     "search",
     parseAsString.withDefault("")
   );
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [selectedCategory, setSelectedCategory] = useQueryState(
     "category",
-    parseAsString.withDefault(null)
+    parseAsString.withDefault("")
   );
   const [statusFilter, setStatusFilter] = useQueryState(
     "status",
@@ -51,217 +51,92 @@ export default function HomePage() {
   );
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const { toast } = useToast();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const categories = Array.from(
-    new Set(websites.map((site) => site.category))
-  ).sort();
+  const { data: websiteData = [], isLoading: loading, isFetching: fetching, refetch } = useServicesData();
+  const queryClient = useQueryClient();
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const dataPromises = websites.map(async (website) => {
-        // Handle incident.io RSS feeds
-        if (website.statusPageType === "incidentio") {
-          // Try to get RSS feed URL (usually /feed.rss)
-          const baseUrl = website.url.replace(/\/$/, "");
-          const rssUrl = `${baseUrl}/feed.rss`;
-          
-          try {
-            return await parseIncidentIoRSS(
-              rssUrl,
-              website.name,
-              website.url,
-              website.category
-            );
-          } catch (error) {
-            // parseIncidentIoRSS already returns error state, but catch here as fallback
-            if (process.env.NODE_ENV === "development") {
-              console.debug(`Error fetching incident.io RSS for ${website.name}:`, error);
-            }
-            return {
-              page: {
-                id: website.name,
-                name: website.name,
-                url: website.url,
-                updated_at: new Date().toISOString(),
-              },
-              components: [],
-              status: {
-                description: "Error fetching status",
-                indicator: "error",
-              },
-              name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
-              url: website.url,
-            } as WebsiteData;
-          }
-        }
+  // Get unique categories for filter options
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(new Set(websiteData.map((w) => w.category)));
+    return uniqueCategories.sort();
+  }, [websiteData]);
 
-        // Handle Hotmart status API
-        if (website.statusPageType === "hotmart") {
-          try {
-            return await parseHotmartStatus(
-              website.name,
-              website.url,
-              website.category
-            );
-          } catch (error) {
-            // parseHotmartStatus already returns error state, but catch here as fallback
-            if (process.env.NODE_ENV === "development") {
-              console.debug(`Error fetching Hotmart status for ${website.name}:`, error);
-            }
-            return {
-              page: {
-                id: website.name,
-                name: website.name,
-                url: website.url,
-                updated_at: new Date().toISOString(),
-              },
-              components: [],
-              status: {
-                description: "Error fetching status",
-                indicator: "error",
-              },
-              name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
-              url: website.url,
-            } as WebsiteData;
-          }
-        }
+  // Configure filter items for FilterSelector
+  const filterItems = useMemo(() => [
+    { id: "all", label: "All", color: "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:bg-zinc-700" },
+    ...categories.map((cat) => ({
+      id: cat,
+      label: cat,
+      color: "bg-zinc-800/50 text-zinc-300 border-zinc-700 hover:bg-zinc-700",
+    })),
+  ], [categories]);
 
-        // Handle AppMax status API
-        if (website.statusPageType === "appmax") {
-          try {
-            const baseUrl = `https://${new URL(website.url).hostname}`;
-            return await parseAppMaxStatus(
-              website.url, // The URL is the API endpoint
-              website.name,
-              baseUrl,
-              website.category
-            );
-          } catch (error) {
-            // parseAppMaxStatus already returns error state, but catch here as fallback
-            if (process.env.NODE_ENV === "development") {
-              console.debug(`Error fetching AppMax status for ${website.name}:`, error);
-            }
-            return {
-              page: {
-                id: website.name,
-                name: website.name,
-                url: website.url,
-                updated_at: new Date().toISOString(),
-              },
-              components: [],
-              status: {
-                description: "Error fetching status",
-                indicator: "error",
-              },
-              name: website.name,
-              category: website.category,
-              statusPageType: website.statusPageType,
-              url: website.url,
-            } as WebsiteData;
-          }
-        }
+  // Active filters state
+  const [activeFilters, setActiveFilters] = useState<string[]>(["all"]);
 
-        const isExternalOnlyService =
-          website.statusPageType === "google" ||
-          website.statusPageType === "azure" ||
-          website.statusPageType === "jenkins" ||
-          website.statusPageType === "adobe" ||
-          website.statusPageType === "sketch" ||
-          website.statusPageType === "apple" ||
-          website.statusPageType === "custom" ||
-          website.statusPageType === "betterstack" ||
-          website.statusPageType === "statusio" ||
-          website.statusPageType === "statuspal" ||
-          website.statusPageType === "instatus" ||
-          website.statusPageType === "microsoft" ||
-          (!website.url.includes("api/v2/summary.json") &&
-            !website.url.includes("api/v2/status.json"));
-
-        if (isExternalOnlyService) {
-          return {
-            page: {
-              id: website.name,
-              name: website.name,
-              url: website.url,
-              updated_at: new Date().toISOString(),
-            },
-            components: [],
-            status: {
-              description: "External status page",
-              indicator: "external",
-            },
-            name: website.name,
-            category: website.category,
-            statusPageType: website.statusPageType,
-            url: website.url,
-          } as WebsiteData;
-        }
-
-        try {
-          const fetchedData = await getStatus(website.url);
-          return {
-            ...fetchedData,
-            name: website.name,
-            category: website.category,
-            statusPageType: website.statusPageType,
-            url: website.url,
-          } as WebsiteData;
-        } catch (error) {
-          return {
-            page: {
-              id: website.name,
-              name: website.name,
-              url: website.url,
-              updated_at: new Date().toISOString(),
-            },
-            components: [],
-            status: {
-              description: "Error fetching status",
-              indicator: "error",
-            },
-            name: website.name,
-            category: website.category,
-            statusPageType: website.statusPageType,
-            url: website.url,
-          } as WebsiteData;
-        }
-      });
-
-      const resolvedData = await Promise.all(dataPromises);
-      const sortedData = resolvedData.sort((a, b) =>
-        a.page.name.localeCompare(b.page.name)
-      );
-      setWebsiteData(sortedData);
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
+  // Handle status filter change - clear search and category when filtering by status
+  const handleStatusFilter = useCallback((status: string) => {
+    if (searchQuery) {
+      setSearchQuery(null);
     }
-  };
+    if (selectedCategory) {
+      setSelectedCategory(null);
+    }
+    setStatusFilter(status);
+  }, [searchQuery, selectedCategory, setSearchQuery, setSelectedCategory, setStatusFilter]);
 
+  // Handle category filter change - clear search when filtering by category
+  const handleCategoryFilter = useCallback((category: string) => {
+    if (searchQuery) {
+      setSearchQuery(null);
+    }
+    setSelectedCategory(category === selectedCategory ? "" : category);
+  }, [searchQuery, selectedCategory, setSearchQuery, setSelectedCategory]);
+
+  // Debounce search query for performance (increased to 300ms for better UX)
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Auto-focus search on mount
+  useEffect(() => {
+    // Focus immediately on mount
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
-  const getStatus = async (url: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Network response was not ok.");
+  // Update lastUpdated when data changes
+  useEffect(() => {
+    if (websiteData.length > 0) {
+      setLastUpdated(new Date());
     }
-    return await response.json();
-  };
+  }, [websiteData]);
 
-  const handleStatusFilter = (status: string) => {
-    setStatusFilter(status);
-  };
+  // Handle filter changes from FilterSelector
+  const handleFilterChange = useCallback((newFilters: string[]) => {
+    setActiveFilters(newFilters);
+    
+    // Handle category filter
+    const selectedCategoryFilter = newFilters.find(f => f !== "all" && categories.includes(f));
+    if (selectedCategoryFilter) {
+      setSelectedCategory(selectedCategoryFilter);
+    } else if (newFilters.includes("all") || newFilters.length === 0) {
+      setSelectedCategory("");
+    }
+  }, [categories, setSelectedCategory]);
+
+  const handleRefresh = useCallback(async () => {
+    // Invalidate cache to force fresh data fetch
+    await queryClient.invalidateQueries({ queryKey: ['services-data'] });
+    await refetch();
+    setLastUpdated(new Date());
+  }, [queryClient, refetch]);
 
   const handleShare = async () => {
     try {
@@ -301,31 +176,38 @@ export default function HomePage() {
     }
   };
 
+  // Enhanced filtering logic - memoized for performance
+  const filteredWebsites = useMemo(() => {
+    const query = debouncedQuery.toLowerCase();
 
-  // Enhanced filtering logic
-  const filteredWebsites = websiteData
-    .filter((data) =>
-      data.page.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter((data) =>
-      selectedCategory ? data.category === selectedCategory : true
-    )
-    .filter((data) => {
+    return websiteData.filter((data) => {
+      // Search filter
+      if (query && !data.page?.name?.toLowerCase().includes(query)) {
+        return false;
+      }
+
+      // Category filter
+      if (selectedCategory && data.category !== selectedCategory) {
+        return false;
+      }
+
+      // Status filter
       if (statusFilter === "all") return true;
-      
+
       if (statusFilter === "operational") {
         return (
-          data.status.indicator === "none" ||
-          data.status.description.toLowerCase().includes("operational")
+          data.status?.indicator === "none" ||
+          data.status?.description?.toLowerCase().includes("operational")
         );
       }
-      
+
       if (statusFilter === "issues") {
         return (
-          data.status.indicator !== "none" &&
-          !data.status.description.toLowerCase().includes("operational") &&
-          data.status.indicator !== "external" &&
-          data.status.indicator !== "error"
+          data.status?.indicator !== "none" &&
+          data.status?.indicator !== "undefined" &&
+          !data.status?.description?.toLowerCase().includes("operational") &&
+          data.status?.indicator !== "external" &&
+          data.status?.indicator !== "error"
         );
       }
 
@@ -337,28 +219,32 @@ export default function HomePage() {
       if (statusFilter === "favorites") {
         return FavoritesStorage.isFavorite(data.name);
       }
-      
+
       return true;
     });
+  }, [websiteData, debouncedQuery, selectedCategory, statusFilter]);
 
-  // Count services by status type
-  const stats = {
-    total: websiteData.length,
-    operational: websiteData.filter(
-      (d) =>
-        d.status.indicator === "none" ||
-        d.status.description.toLowerCase().includes("operational")
-    ).length,
-    issues: websiteData.filter(
-      (d) =>
-        d.status.indicator !== "none" &&
-        !d.status.description.toLowerCase().includes("operational") &&
-        d.status.indicator !== "external" &&
-        d.status.indicator !== "error"
-    ).length,
-    unknown: websiteData.filter((d) => d.status.indicator === "error").length,
-    external: websiteData.filter((d) => d.status.indicator === "external").length,
-  };
+  // Memoized stats calculation
+  const stats = useMemo(() => {
+    return {
+      total: websiteData.length,
+      operational: websiteData.filter(
+        (d) =>
+          d.status?.indicator === "none" ||
+          d.status?.description?.toLowerCase().includes("operational")
+      ).length,
+      issues: websiteData.filter(
+        (d) =>
+          d.status?.indicator !== "none" &&
+          d.status?.indicator !== "undefined" &&
+          !d.status?.description?.toLowerCase().includes("operational") &&
+          d.status?.indicator !== "external" &&
+          d.status?.indicator !== "error"
+      ).length,
+      unknown: websiteData.filter((d) => d.status?.indicator === "error").length,
+      external: websiteData.filter((d) => d.status?.indicator === "external").length,
+    };
+  }, [websiteData]);
 
   const getEmptyStateProps = () => {
     if (statusFilter === "operational") {
@@ -444,7 +330,7 @@ export default function HomePage() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-              <RefreshButton onRefresh={fetchData} />
+              <RefreshButton onRefresh={handleRefresh} />
               <ContributeButton />
               <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
                 <Share2 className="h-4 w-4" />
@@ -478,60 +364,50 @@ export default function HomePage() {
             currentFilter={statusFilter}
           />
 
-          {/* Search and Filters - Redesigned */}
-          <Card className="mb-8 bg-zinc-900/50 border-zinc-800">
-            <CardContent className="p-6">
-              {/* Search Bar */}
-              <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-400 w-5 h-5" />
-                <Input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value || null)}
-                  placeholder="Search developer tools and services..."
-                  className="pl-12 h-12 text-base bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-600"
-                />
-              </div>
+          {/* Search and Filters */}
+          <div className="mb-8 space-y-4">
+            {/* Search Bar */}
+            <div className="flex justify-center">
+              <SearchBar
+                placeholders={[
+                  "Search developer tools...",
+                  "Find cloud services...",
+                  "Look for AI platforms...",
+                  "Search databases...",
+                  "Find APIs...",
+                ]}
+                interval={3000}
+                onChange={(e) => setSearchQuery(e.target.value || null)}
+                onSubmit={(value) => setSearchQuery(value || null)}
+                className="max-w-2xl w-full"
+              />
+            </div>
 
-              {/* Categories - Horizontal Scroll */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-zinc-400">Categories</h3>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-                  <Badge
-                    variant={selectedCategory === null ? "default" : "outline"}
-                    className={`cursor-pointer px-4 py-2 whitespace-nowrap ${
-                      selectedCategory === null
-                        ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
-                        : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                    }`}
-                    onClick={() => setSelectedCategory(null)}
-                  >
-                    All ({websiteData.length})
-                  </Badge>
-                  {categories.map((category) => {
-                    const count = websiteData.filter((d) => d.category === category).length;
-                    return (
-                      <Badge
-                        key={category}
-                        variant={selectedCategory === category ? "default" : "outline"}
-                        className={`cursor-pointer px-4 py-2 whitespace-nowrap ${
-                          selectedCategory === category
-                            ? "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
-                            : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                        }`}
-                        onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
-                      >
-                        {category} ({count})
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Filters */}
+            <div className="flex flex-wrap items-center justify-center">
+              <FilterSelector
+                items={filterItems}
+                activeFilters={activeFilters}
+                onFilterChange={handleFilterChange}
+                theme="dark"
+              />
+            </div>
+          </div>
 
           {/* Services Grid */}
-          {filteredWebsites.length > 0 ? (
+          {loading || fetching ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: websiteData.length || 9 }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="animate-fade-slide-in"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <ServiceCardSkeleton />
+                </div>
+              ))}
+            </div>
+          ) : filteredWebsites.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredWebsites.map((website, index) => (
                 <div
@@ -539,12 +415,12 @@ export default function HomePage() {
                   className="animate-fade-slide-in"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <ServiceCard website={website} loading={loading} />
+                  <ServiceCard website={website} loading={false} />
                 </div>
               ))}
             </div>
           ) : (
-            !loading && <EmptyState {...getEmptyStateProps()} />
+            !loading && !fetching && <EmptyState {...getEmptyStateProps()} />
           )}
 
           {/* Footer */}
@@ -586,4 +462,3 @@ export default function HomePage() {
     </>
   );
 }
-

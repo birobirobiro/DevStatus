@@ -62,11 +62,8 @@ const CATEGORIES = [
 ];
 
 const STATUS_PAGE_TYPES = [
-  { value: "default", label: "Atlassian API (default)" },
+  { value: "default", label: "Auto-detect (default)" },
   { value: "custom", label: "Custom Status Page" },
-  { value: "google", label: "Google Services" },
-  { value: "microsoft", label: "Microsoft Services" },
-  { value: "apple", label: "Apple Services" },
 ];
 
 export function ContributeButton() {

@@ -33,7 +33,7 @@ export async function parseHotmartStatus(
     
     let incidentsResponse: Response;
     try {
-      incidentsResponse = await fetch("https://status.hotmart.com/incidents", {
+      incidentsResponse = await fetch("/api/proxy/json?url=https://status.hotmart.com/incidents", {
         signal: incidentsController.signal,
       });
       clearTimeout(incidentsTimeout);
@@ -54,7 +54,7 @@ export async function parseHotmartStatus(
     
     let servicesResponse: Response;
     try {
-      servicesResponse = await fetch("https://status.hotmart.com/services", {
+      servicesResponse = await fetch("/api/proxy/json?url=https://status.hotmart.com/services", {
         signal: servicesController.signal,
       });
       clearTimeout(servicesTimeout);

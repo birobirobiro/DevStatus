@@ -33,6 +33,9 @@ export interface LocalWebsiteEntry {
   statusPageType?: string
 }
 
+// Alias for data/sites.ts usage
+export type WebsiteEntry = LocalWebsiteEntry
+
 // SVGL API Types
 export type ThemeOptions = {
   dark: string

@@ -17,13 +17,16 @@ export async function parseIncidentIoRSS(
   category: string
 ): Promise<WebsiteData> {
   try {
+    // Use proxy to avoid CORS issues
+    const proxyUrl = `/api/proxy/rss?url=${encodeURIComponent(rssUrl)}`;
+    
     // Fetch RSS feed with timeout
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     
     let response: Response;
     try {
-      response = await fetch(rssUrl, {
+      response = await fetch(proxyUrl, {
         signal: controller.signal,
       });
       clearTimeout(timeout);
