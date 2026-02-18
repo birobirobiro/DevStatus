@@ -388,6 +388,13 @@ export const websites: WebsiteEntry[] = [
   ...gamingStreaming,
   ...testing,
   ...government,
+
+  // Suggested by community
+  {
+    name: "Unosend",
+    url: "https://status.unosend.co/",
+    category: "Email",
+  },
 ];
 
 // Adiciona statusPageType="custom" para todos os domínios na lista de externos
