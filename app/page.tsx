@@ -396,7 +396,7 @@ export default function HomePage() {
 
           {/* Services Grid */}
           {loading || fetching ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {Array.from({ length: websiteData.length || 9 }).map((_, index) => (
                 <div
                   key={`skeleton-${index}`}
@@ -408,7 +408,7 @@ export default function HomePage() {
               ))}
             </div>
           ) : filteredWebsites.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {filteredWebsites.map((website, index) => (
                 <div
                   key={website.page.id}

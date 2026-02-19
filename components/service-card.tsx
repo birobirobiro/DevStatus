@@ -52,6 +52,7 @@ const providerNames: Record<string, string> = {
   uptimekuma: "Uptime Kuma",
   tiktok: "TikTok Status",
   uptimerobot: "UptimeRobot",
+  stripe: "Stripe Status",
   custom: "Custom Status Page",
 };
 
@@ -231,7 +232,7 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
   return (
     <TooltipProvider>
       <Card
-        className={`h-[380px] overflow-hidden transition-all duration-300 hover:-translate-y-1 group relative backdrop-blur-sm bg-zinc-900/60 border-zinc-800/60 hover:border-zinc-700/80 hover:bg-zinc-800/70 cursor-pointer ${
+        className={`h-auto sm:h-[380px] overflow-hidden transition-all duration-300 hover:-translate-y-1 group relative backdrop-blur-sm bg-zinc-900/60 border-zinc-800/60 hover:border-zinc-700/80 hover:bg-zinc-800/70 cursor-pointer ${
           statusInfo.glow ? statusInfo.glowClass : ""
         }`}
         onClick={handleViewDetails}
@@ -239,50 +240,50 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
         {/* Favorite Star */}
         <button
           onClick={handleFavorite}
-          className="absolute top-3 right-3 z-10 p-2 rounded-lg bg-zinc-900/80 border border-zinc-700 hover:bg-zinc-800 transition-all"
+          className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 p-1.5 sm:p-2 rounded-lg bg-zinc-900/80 border border-zinc-700 hover:bg-zinc-800 transition-all"
           type="button"
           aria-label="Toggle favorite"
         >
           <Star
-            className={`w-4 h-4 transition-all ${
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all ${
               isFavorite ? "fill-yellow-400 text-yellow-400" : "text-zinc-400"
             }`}
           />
         </button>
 
-        <CardHeader className="pb-3">
-          <div className="flex items-start gap-3">
-            <div className="relative">
-              <div className="w-14 h-14 bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center group-hover:border-zinc-600 transition-colors overflow-hidden">
+        <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="relative shrink-0">
+              <div className="w-11 h-11 sm:w-14 sm:h-14 bg-zinc-800 rounded-lg sm:rounded-xl border border-zinc-700 flex items-center justify-center group-hover:border-zinc-600 transition-colors overflow-hidden">
                 {logoUrl && !imgLoadError ? (
                   <img
                     src={logoUrl}
                     alt={`${displayName} logo`}
-                    className="w-9 h-9 object-contain"
+                    className="w-7 h-7 sm:w-9 sm:h-9 object-contain"
                     onError={() => setImgLoadError(true)}
                     key={logoUrl}
                   />
                 ) : (
-                  <ServiceIcon className="w-7 h-7 text-zinc-300" />
+                  <ServiceIcon className="w-5 h-5 sm:w-7 sm:h-7 text-zinc-300" />
                 )}
               </div>
-              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-zinc-900 ${statusInfo.dotColor}`} />
+              <div className={`absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 border-zinc-900 ${statusInfo.dotColor}`} />
             </div>
-              <div className="flex-1 min-w-0 pr-8">
-              <h3 className="font-semibold text-zinc-100 truncate text-base mb-1">
+            <div className="flex-1 min-w-0 pr-6 sm:pr-8">
+              <h3 className="font-semibold text-zinc-100 truncate text-sm sm:text-base mb-0.5 sm:mb-1">
                 {displayName}
               </h3>
               <div className="flex flex-wrap gap-1 items-center">
-                <Badge variant="secondary" className="text-xs bg-zinc-800 text-zinc-300 border-zinc-700">
+                <Badge variant="secondary" className="text-[10px] sm:text-xs bg-zinc-800 text-zinc-300 border-zinc-700 px-1.5 sm:px-2">
                   {website.category}
                 </Badge>
                 {website.statusPageType && website.statusPageType !== "custom" && (
                   <ProviderIcon type={website.statusPageType} />
                 )}
                 {hasHighActivity && (
-                  <Badge className="text-xs bg-orange-500/20 text-orange-300 border-orange-500/30 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    HIGH ACTIVITY
+                  <Badge className="text-[10px] sm:text-xs bg-orange-500/20 text-orange-300 border-orange-500/30 flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2">
+                    <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    HIGH
                   </Badge>
                 )}
               </div>
@@ -290,23 +291,23 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0 space-y-3">
+        <CardContent className="pt-0 space-y-2 sm:space-y-3 p-3 sm:p-6">
           {/* Status Badge */}
-          <div className={`flex items-center gap-2 p-3 rounded-lg border ${statusInfo.bgColor} ${statusInfo.borderColor}`}>
-            <statusInfo.icon className={`w-4 h-4 ${statusInfo.color}`} />
-            <span className={`text-sm font-medium ${statusInfo.color} flex-1`}>
+          <div className={`flex items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-lg border ${statusInfo.bgColor} ${statusInfo.borderColor}`}>
+            <statusInfo.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${statusInfo.color}`} />
+            <span className={`text-xs sm:text-sm font-medium ${statusInfo.color} flex-1 truncate`}>
               {website.status.description || statusInfo.label}
             </span>
           </div>
 
-          {/* User Reports Section - SEMPRE VISÍVEL */}
-          <div className="bg-zinc-800/30 rounded-lg p-3 border border-zinc-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+          {/* User Reports Section */}
+          <div className="bg-zinc-800/30 rounded-lg p-2 sm:p-3 border border-zinc-800">
+            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+              <span className="text-[10px] sm:text-xs font-medium text-zinc-400 uppercase tracking-wide">
                 User Reports (24h)
               </span>
               {reportStats.last24Hours > 0 && (
-                <span className="text-xs font-semibold text-orange-400">
+                <span className="text-[10px] sm:text-xs font-semibold text-orange-400">
                   {reportStats.last24Hours} total
                 </span>
               )}
@@ -314,7 +315,7 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
 
             {/* Sparkline */}
             {reportStats.timeline.length > 0 && reportStats.last24Hours > 0 ? (
-              <div className="flex items-end h-12 gap-0.5 mb-2">
+              <div className="flex items-end h-8 sm:h-12 gap-0.5 mb-1.5 sm:mb-2">
                 {reportStats.timeline.map((count, i) => {
                   const maxCount = Math.max(...reportStats.timeline, 1);
                   const height = (count / maxCount) * 100;
@@ -331,37 +332,37 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
                           ? "bg-orange-500/70"
                           : "bg-zinc-700/30"
                       }`}
-                      style={{ height: `${height}%`, minHeight: height > 0 ? "4px" : "2px" }}
+                      style={{ height: `${height}%`, minHeight: height > 0 ? "3px" : "2px" }}
                     />
                   );
                 })}
               </div>
             ) : (
-              <div className="h-12 flex items-center justify-center mb-2">
-                <span className="text-xs text-zinc-500">No user reports yet</span>
+              <div className="h-8 sm:h-12 flex items-center justify-center mb-1.5 sm:mb-2">
+                <span className="text-[10px] sm:text-xs text-zinc-500">No user reports yet</span>
               </div>
             )}
 
             {reportStats.lastHour > 0 && (
-              <div className="text-xs text-orange-400 font-medium flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
+              <div className="text-[10px] sm:text-xs text-orange-400 font-medium flex items-center gap-1">
+                <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 {reportStats.lastHour} in last hour
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2 pt-2">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 pt-1 sm:pt-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleReport}
-                  className="h-9 px-3 bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center gap-2"
+                  className="h-8 sm:h-9 px-2 sm:px-3 bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-400 hover:text-red-300 flex items-center justify-center gap-1 sm:gap-2"
                 >
-                  <AlertCircleIcon className="w-4 h-4" />
-                  <span className="text-xs font-medium">Report</span>
+                  <AlertCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="text-[10px] sm:text-xs font-medium">Report</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Report a problem</TooltipContent>
@@ -373,10 +374,10 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleStatusPage}
-                  className="h-9 px-3 bg-zinc-700/30 border-zinc-600 hover:bg-zinc-700/50 text-zinc-300 hover:text-zinc-100 flex items-center gap-2"
+                  className="h-8 sm:h-9 px-2 sm:px-3 bg-zinc-700/30 border-zinc-600 hover:bg-zinc-700/50 text-zinc-300 hover:text-zinc-100 flex items-center justify-center gap-1 sm:gap-2"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  <span className="text-xs font-medium">Status</span>
+                  <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="text-[10px] sm:text-xs font-medium">Status</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Open status page</TooltipContent>
@@ -384,9 +385,9 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
           </div>
 
           {/* Last Updated + Click hint */}
-          <div className="flex items-center justify-between text-xs text-zinc-500 pt-1 border-t border-zinc-800">
-            <div className="flex items-center gap-2">
-              <Clock className="w-3 h-3" />
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-zinc-500 pt-1 sm:pt-1 border-t border-zinc-800">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               <span>
                 {new Date(website.page.updated_at).toLocaleTimeString([], {
                   hour: "2-digit",
@@ -394,7 +395,7 @@ export function ServiceCard({ website, loading }: ServiceCardProps) {
                 })}
               </span>
             </div>
-            <span className="text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
               Click for details →
             </span>
           </div>

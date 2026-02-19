@@ -18,6 +18,7 @@ import { parsePayPalStatus } from '@/lib/paypal-parser';
 import { parseXboxStatus } from '@/lib/xbox-parser';
 import { parsePlayStationStatus } from '@/lib/playstation-parser';
 import { parseUptimeKuma } from '@/lib/uptimekuma-parser';
+import { parseStripeStatus } from '@/lib/stripe-parser';
 import type { WebsiteData } from '@/types';
 
 const STALE_TIME = 1000 * 60 * 2;
@@ -203,6 +204,15 @@ async function fetchServiceData(website: typeof websites[0]): Promise<WebsiteDat
   if (website.statusPageType === "uptimekuma") {
     try {
       return await parseUptimeKuma(website.url, website.name, website.category);
+    } catch (error) {
+      return createErrorData(website);
+    }
+  }
+
+  // Handle Stripe RSS API
+  if (website.statusPageType === "stripe") {
+    try {
+      return await parseStripeStatus(website.name, website.url, website.category);
     } catch (error) {
       return createErrorData(website);
     }

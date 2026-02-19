@@ -36,7 +36,7 @@ const VALID_STATUS_PAGE_TYPES = [
   "apple", "hotmart", "appmax", "postmark", "openstatus",
   "statusio", "betterstack", "instatus", "statuspal", "onlineornot",
   "paypal", "salesforce", "ohdear", "pagerduty", "xbox", "playstation",
-  "uptimekuma"
+  "uptimekuma", "stripe"
 ];
 
 function extractWebsitesFromFile(content) {

@@ -7,7 +7,6 @@ export const base_url_atlassian = "api/v2/summary.json";
 const externalStatusDomains = [
   "fastlystatus.com",
   "status.strapi.io",
-  "status.stripe.com",
   "replicatestatus.com",
   "status.okta.com",
   "status.postmarkapp.com",
@@ -297,7 +296,7 @@ const ecommercePayments: WebsiteEntry[] = [
   { name: "Dodo Payments", url: "https://status.dodopayments.com/", category: "Payment", statusPageType: "betterstack" },
   { name: "Lemon Squeezy", url: "https://status.lemonsqueezy.com/", category: "Payment", statusPageType: "ohdear" },
   // International
-  { name: "Stripe", url: "https://status.stripe.com/", category: "Payment", statusPageType: "custom" },
+  { name: "Stripe", url: "https://status.stripe.com/", category: "Payment", statusPageType: "stripe" },
   { name: "Shopify", url: "https://www.shopifystatus.com/", category: "E-commerce", statusPageType: "custom" },
   { name: "VTEX", url: "https://status.vtex.com/", category: "E-commerce", statusPageType: "incidentio" },
   { name: "PayPal", url: "https://www.paypal-status.com/", category: "Payment", statusPageType: "paypal" },
